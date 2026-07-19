@@ -12,7 +12,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 
-def combine_folds(dataset_name):
+def get_combined_dataset(dataset_name):
 
     """
     Combines all folds of a dataset into a single DataFrame.
@@ -47,11 +47,22 @@ def combine_folds(dataset_name):
         folds.append(fold_df)
         # we can append any type of object to a python list (numerical, dictionary, custom objects, etc.). Also, it need not be a homogenous collection.
 
-    combined_df = pd.concat(folds, ignore_index=True)
+    dataset = pd.concat(folds, ignore_index=True)
 
-    combined_df = combined_df.drop_duplicates().reset_index(drop=True)
+    dataset = dataset.drop_duplicates().reset_index(drop=True)
 
-    return combined_df
+    return dataset
+
+def get_input_features_count(dataset_name):
+
+    """
+    Returns the number of input features in the dataset.
+    """
+
+    dataset = get_combined_dataset(dataset_name)
+    X, y = split_features_and_target(dataset)
+
+    return X.shape[1]
 
 def split_features_and_target(df, target_column='target'):
 
@@ -60,7 +71,7 @@ def split_features_and_target(df, target_column='target'):
     """
 
     X = df.drop(columns=[target_column])
-    y = df[target_column]
+    y = df[target_column].to_frame(name=getattr(df[target_column], "name", "target"))
 
     return X, y
 
@@ -80,10 +91,17 @@ def to_tensor(x):
     Converts a numpy array into a PyTorch tensor.
     """
 
+    if hasattr(x, "toarray"):
+        x = x.toarray()
+
     if isinstance(x, np.ndarray):
         return torch.from_numpy(x).float()
     elif isinstance(x, torch.Tensor):
         return x.float()
+    elif isinstance(x, pd.DataFrame):
+        return torch.from_numpy(x.to_numpy(copy=True)).float()
+    elif isinstance(x, pd.Series):
+        return torch.from_numpy(x.to_numpy(copy=True)).float()
     else:
         raise TypeError(f"Expected numpy.ndarray or torch.Tensor, got {type(x)}")
 
@@ -95,6 +113,9 @@ def create_dataloaders(X_train, y_train, X_test, y_test, batch_size=32):
 
     X_train, y_train, X_test, y_test = map(to_tensor, (X_train, y_train, X_test, y_test))
 
+    y_train = y_train.reshape(-1, 1)
+    y_test = y_test.reshape(-1, 1)
+
     train_data = TensorDataset(X_train, y_train)
     test_data = TensorDataset(X_test, y_test)
 
@@ -103,20 +124,20 @@ def create_dataloaders(X_train, y_train, X_test, y_test, batch_size=32):
 
     return train_ldr, test_ldr
 
-def data_transformer(df, categorical_strategy='most_frequent', non_categorical_strategy='mean'):
+def data_transformer(X, y, categorical_strategy='most_frequent', non_categorical_strategy='mean'):
 
     """
     This function creates a transformer object that scales numerical features and encodes categorical features along with imputing missing values.
     """
 
-    categorical_columns = df.select_dtypes(include=['object', 'category']).columns.to_list()
+    categorical_columns = X.select_dtypes(include=['object', 'category']).columns.to_list()
     # select_dtypes return a subset of the DataFrame’s columns based on the column dtypes.
 
-    non_categorical_columns = df.select_dtypes(exclude=['object', 'category']).columns.to_list()
+    non_categorical_columns = X.select_dtypes(exclude=['object', 'category']).columns.to_list()
 
     categorical_pipeline = Pipeline([
         ('imputer', SimpleImputer(strategy=categorical_strategy)),
-        ('encoder', OneHotEncoder())
+        ('encoder', OneHotEncoder(handle_unknown='ignore'))
     ])
 
     non_categorical_pipeline = Pipeline([
@@ -124,12 +145,16 @@ def data_transformer(df, categorical_strategy='most_frequent', non_categorical_s
         ('scaler', StandardScaler())
     ])
 
-    transformer = ColumnTransformer([
+    transformer_X = ColumnTransformer([
         ('transform_categorical', categorical_pipeline, categorical_columns),
         ('transform_non_categorical', non_categorical_pipeline, non_categorical_columns)
     ], remainder='passthrough')
 
-    return transformer # remember to convert sparse matrix to dense if needed using .toarray() after transformation.
+    transformer_y = ColumnTransformer([
+        ('scaler', StandardScaler(), y.columns.to_list()),
+    ])
+
+    return transformer_X, transformer_y
 
 def drop_na_rows(df):
 
@@ -138,20 +163,3 @@ def drop_na_rows(df):
     """
 
     return df.dropna(how='any')
-
-def test_fns():
-
-    datasets = [
-        'brazilian_houses',
-        'bike_sharing_demand',
-        'superconductivity',
-        'wine_quality',
-        'yprop_4_1'
-    ]
-
-    for d in datasets:
-
-        x = combine_folds('brazilian_houses')
-        print(pd.isna(x).sum().sum())
-
-test_fns()

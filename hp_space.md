@@ -1,4 +1,4 @@
-# Project Elements
+# Hyperparameter Space
 
 ## Models
 - XGBoost – XGBRegressor
@@ -23,9 +23,11 @@
     - weights: uniform/distance
     - p: 1/2
 - Feed Forward Neural Network
-    - n_layers: 1-4
-    - n_units: 32 - 512
+    - no_of_layers: 1-4
+    - no_of_units: 32 - 512
     - learning_rate: 1e-5 - 1e-2 (log scale)
     - batch_size: 32 - 256
     - weight_decay: 1e-6 - 1e-3 (log scale)
+    - batch_norm: True/False
+    - num_epochs: 100-1000
 
