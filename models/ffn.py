@@ -1,22 +1,10 @@
 import numpy as np
 
-import matplotlib.pyplot as plt
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import utils.data_utils as du
-
-def set_device():
-
-    device = torch.device('cpu')
-
-    if torch.cuda.is_available():
-        device = torch.device('cuda')
-    elif torch.backends.mps.is_available():
-        device = torch.device('mps')
-
-    return device
+import utils.model_utils as mu
 
 def prepare_data(dataset_name, batch_size=64):
     data = du.get_combined_dataset(dataset_name)
@@ -39,10 +27,9 @@ def prepare_data(dataset_name, batch_size=64):
 
     train_ldr, test_ldr = du.create_dataloaders(X_train, y_train, X_test, y_test, batch_size=batch_size)
 
-    return train_ldr, test_ldr, X_train.shape[1]
+    return train_ldr, test_ldr, X_train.shape[1], transformer_y
 
 def setup_model(
-        dataset_name,
         no_of_feats,
         no_of_layers,
         no_of_units,
@@ -105,7 +92,7 @@ def train_model(
         num_epochs=200,
 ):
 
-    device = set_device()
+    device = mu.set_device()
 
     model.to(device)
 
@@ -133,7 +120,6 @@ def train_model(
             optimizer.step()
 
         train_losses[epochi] = np.mean(batch_losses)
-        print(f'Train Loss: Epoch {epochi + 1}, Loss: {train_losses[epochi]:.4f}')
 
         model.eval()
 
@@ -148,23 +134,9 @@ def train_model(
 
             test_losses[epochi] = loss_function(y_hat, y).item()
 
-            print(f'Train Loss: Epoch {epochi + 1}, Loss: {train_losses[epochi]:.4f} \n Test Loss: Epoch {epochi + 1}, Loss: {test_losses[epochi]:.4f}')
+        print(f'Epoch {epochi + 1} -> Train Loss: {train_losses[epochi]:.4f} | Test Loss: {test_losses[epochi]:.4f}')
 
     return model, train_losses, test_losses
-
-def plot_losses(train_losses, test_losses):
-
-    fig, [ax1, ax2] = plt.subplots(1, 2, figsize=(12, 4))
-
-    ax1.plot(train_losses, label='Train Loss')
-    ax1.set_xlabel('Epochs')
-    ax1.set_ylabel('Train Loss')
-
-    ax2.plot(test_losses, label='Test Loss')
-    ax2.set_xlabel('Epochs')
-    ax2.set_ylabel('Test Loss')
-
-    plt.show()
 
 def pipelined_model(
         dataset_name,
@@ -177,10 +149,9 @@ def pipelined_model(
         num_epochs
 ):
 
-    train_ldr, test_ldr, no_of_feats = prepare_data(dataset_name=dataset_name, batch_size=batch_size)
+    train_ldr, test_ldr, no_of_feats, transformer_y = prepare_data(dataset_name=dataset_name, batch_size=batch_size)
 
     model, optimizer, loss_function = setup_model(
-        dataset_name,
         no_of_feats=no_of_feats,
         no_of_layers=no_of_layers,
         no_of_units=no_of_units,
@@ -199,10 +170,12 @@ def pipelined_model(
     )
     # Use this trained model for predictions
 
-    return model, train_losses, test_losses
+    y, y_hat = mu.get_predictions(model, test_ldr, mu.set_device(), transformer_y)
+
+    return model, train_losses, test_losses, y, y_hat
 
 if __name__ == '__main__':
-    model, train_losses, test_losses = pipelined_model(
+    model, train_losses, test_losses, y, y_hat = pipelined_model(
         dataset_name='brazilian_houses',
         batch_size=64,
         no_of_layers=3,
@@ -213,9 +186,8 @@ if __name__ == '__main__':
         num_epochs=500
     )
 
-    plot_losses(train_losses, test_losses)
-
-    avg_test_loss = np.mean(test_losses)
+    mu.plot_losses(train_losses, test_losses)
+    avg_test_loss = mu.average_test_loss(test_losses)
 
     print(f"Model training completed with the average test loss of {avg_test_loss:.4f}. You can now use the trained model for predictions.")
-
+    print(f"R2 Score: {mu.get_r2_score(y, y_hat):.4f}")
