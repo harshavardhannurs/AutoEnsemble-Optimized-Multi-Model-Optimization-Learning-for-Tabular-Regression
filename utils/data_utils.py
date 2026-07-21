@@ -18,7 +18,14 @@ def get_combined_dataset(dataset_name):
     Combines all folds of a dataset into a single DataFrame.
     """
 
-    data_dir = Path(f'../data/{dataset_name}')
+    utils_dir = Path(__file__).resolve().parent
+
+    project_root = utils_dir.parent
+
+    data_dir = project_root/'data'/dataset_name
+
+    if not data_dir.exists():
+        raise FileNotFoundError(f"Directory does not exist: {data_dir}")
 
     folds = []
 
