@@ -208,7 +208,7 @@ def run_cv(
 
     return train_loss_across_folds, val_loss_across_folds, r2_score_across_folds
 
-def pipelined_model(
+def ffn_pipelined_model(
         dataset_name,
         batch_size,
         no_of_layers,

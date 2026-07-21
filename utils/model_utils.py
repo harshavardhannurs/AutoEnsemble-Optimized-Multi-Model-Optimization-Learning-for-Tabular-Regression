@@ -31,8 +31,9 @@ def plot_losses(train_loss_across_folds, val_loss_across_folds):
     ax2.legend()
 
     fig.suptitle('Training and Validation Losses')
+    fig.tight_layout()
 
-    plt.show()
+    return fig
 
 def get_predictions(model, test_ldr, device, transformer_y):
 

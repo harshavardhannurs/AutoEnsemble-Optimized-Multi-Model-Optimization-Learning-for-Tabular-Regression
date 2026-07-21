@@ -12,13 +12,15 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 
+ROOT = Path(__file__).resolve().parent.parent
+
 def get_combined_dataset(dataset_name):
 
     """
     Combines all folds of a dataset into a single DataFrame.
     """
 
-    data_dir = Path(f'data/{dataset_name}')
+    data_dir = ROOT / 'data' / dataset_name
 
     folds = []
 
