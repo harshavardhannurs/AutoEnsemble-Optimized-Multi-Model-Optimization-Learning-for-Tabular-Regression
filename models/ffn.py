@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from copy import deepcopy
+
 from sklearn.model_selection import KFold
 
 import utils.data_utils as du
@@ -82,10 +84,11 @@ def run_cv(
 
     device = mu.set_device()
 
-    kf = KFold(n_splits=n_splits, shuffle=True)
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
     train_loss_across_folds = np.zeros((n_splits, num_epochs))
     val_loss_across_folds = np.zeros((n_splits, num_epochs))
+    r2_score_across_folds = np.zeros((n_splits,))
 
     for i, (train_indices, val_indices) in enumerate(kf.split(X_train)):
 
@@ -104,14 +107,10 @@ def run_cv(
         y_val_fold = transformer_y.transform(y_val_fold)
 
         # Convert sparse matrices to dense arrays if needed
-        if hasattr(X_train_fold, "toarray"):
-            X_train_fold = X_train_fold.toarray()
-        if hasattr(X_val_fold, "toarray"):
-            X_val_fold = X_val_fold.toarray()
-        if hasattr(y_train_fold, "toarray"):
-            y_train_fold = y_train_fold.toarray()
-        if hasattr(y_val_fold, "toarray"):
-            y_val_fold = y_val_fold.toarray()
+        X_train_fold = du.to_dense(X_train_fold)
+        X_val_fold = du.to_dense(X_val_fold)
+        y_train_fold = du.to_dense(y_train_fold)
+        y_val_fold = du.to_dense(y_val_fold)
 
         no_of_feats = X_train_fold.shape[1]
         no_of_layers, no_of_units, learning_rate, weight_decay, batch_norm = model_hps
@@ -124,6 +123,9 @@ def run_cv(
             weight_decay=weight_decay,
             batch_norm=batch_norm
         )
+
+        best_loss = np.inf
+        best_weights = None
 
         model.to(device)
 
@@ -169,12 +171,34 @@ def run_cv(
 
                 val_loss_across_epochs[epochi] = loss_function(y_val_hat, y_val).item()
 
+            if val_loss_across_epochs[epochi] < best_loss:
+                best_loss = val_loss_across_epochs[epochi]
+                best_weights = deepcopy(model.state_dict())
+
+
             print(f'Epoch {epochi + 1}/{num_epochs} -> Train Loss: {train_loss_across_epochs[epochi]:.4f} || Validation Loss: {val_loss_across_epochs[epochi]:.4f}')
+
+        model.load_state_dict(best_weights)
+
+        model.eval()
+
+        with torch.no_grad():
+
+            X_val, y_val = next(iter(val_ldr))
+
+            X_val = X_val.to(device)
+            y_val = y_val.to(device)
+
+            y_val_hat = model(X_val)
+
+        y, y_hat = mu.get_predictions_2(y_val.cpu().numpy(), y_val_hat.cpu().numpy(), transformer_y)
+
+        r2_score_across_folds[i] = mu.get_r2_score(y, y_hat)
 
         train_loss_across_folds[i, :] = train_loss_across_epochs
         val_loss_across_folds[i, :] = val_loss_across_epochs
 
-    return train_loss_across_folds, val_loss_across_folds
+    return train_loss_across_folds, val_loss_across_folds, r2_score_across_folds
 
 def pipelined_model(
         dataset_name,
@@ -190,7 +214,7 @@ def pipelined_model(
 
     X_train, X_test, y_train, y_test  = prepare_data(dataset_name)
 
-    train_loss_across_folds, val_loss_across_folds = run_cv(
+    train_loss_across_folds, val_loss_across_folds, r2_score_across_folds = run_cv(
         X_train=X_train,
         y_train=y_train,
         model_hps=(no_of_layers, no_of_units, learning_rate, weight_decay, batch_norm),
@@ -199,10 +223,10 @@ def pipelined_model(
         n_splits=n_splits
     )
 
-    return train_loss_across_folds, val_loss_across_folds
+    return train_loss_across_folds, val_loss_across_folds, r2_score_across_folds
 
 if __name__ == '__main__':
-    train_loss_across_folds, val_loss_across_folds = pipelined_model(
+    train_loss_across_folds, val_loss_across_folds, r2_score_across_folds = pipelined_model(
         dataset_name='bike_sharing_demand',
         batch_size=64,
         no_of_layers=2,
@@ -215,3 +239,5 @@ if __name__ == '__main__':
     )
 
     mu.plot_losses(train_loss_across_folds, val_loss_across_folds)
+
+    print("The current hyperparameter configuration yields an average R2 Score of ", mu.average_test_loss(r2_score_across_folds))

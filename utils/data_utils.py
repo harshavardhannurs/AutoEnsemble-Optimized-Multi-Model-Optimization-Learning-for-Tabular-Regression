@@ -70,9 +70,12 @@ def split_train_test(X, y, test_size=0.2):
     Split the data into train and test sets.
     """
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=True)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=True, random_state=42)
 
     return X_train, X_test, y_train, y_test
+
+def to_dense(x):
+    return x.toarray() if hasattr(x, "toarray") else x
 
 def to_tensor(x):
 

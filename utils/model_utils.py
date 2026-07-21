@@ -50,9 +50,16 @@ def get_predictions(model, test_ldr, device, transformer_y):
 
     return y.flatten(), y_hat.flatten()
 
-def average_test_loss(test_losses, num_epochs):
+def get_predictions_2(y, y_hat, transformer_y):
 
-    return np.mean(test_losses[-num_epochs:])
+    y = transformer_y.named_transformers_['scaler'].inverse_transform(y)
+    y_hat = transformer_y.named_transformers_['scaler'].inverse_transform(y_hat)
+
+    return y.flatten(), y_hat.flatten()
+
+def average_test_loss(X):
+
+    return np.mean(X)
 
 def get_r2_score(y, y_hat):
 
