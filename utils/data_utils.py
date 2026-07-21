@@ -18,7 +18,7 @@ def get_combined_dataset(dataset_name):
     Combines all folds of a dataset into a single DataFrame.
     """
 
-    data_dir = Path(f'../data/{dataset_name}')
+    data_dir = Path(f'data/{dataset_name}')
 
     folds = []
 
