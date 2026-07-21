@@ -191,7 +191,7 @@ def run_cv(
 
             y_val_hat = model(X_val)
 
-        y, y_hat = mu.get_predictions_2(y_val.cpu().numpy(), y_val_hat.cpu().numpy(), transformer_y)
+        y, y_hat = mu.get_predictions(y_val.cpu().numpy(), y_val_hat.cpu().numpy(), transformer_y)
 
         r2_score_across_folds[i] = mu.get_r2_score(y, y_hat)
 

@@ -34,23 +34,7 @@ def plot_losses(train_loss_across_folds, val_loss_across_folds):
 
     plt.show()
 
-def get_predictions(model, test_ldr, device, transformer_y):
-
-    model.eval()
-
-    model.to(device)
-    X, y = next(iter(test_ldr))
-    X = X.to(device)
-    y = y.to(device)
-
-    with torch.no_grad():
-        y_hat = model(X)
-        y_hat = transformer_y.named_transformers_['scaler'].inverse_transform(y_hat.cpu().numpy())
-        y = transformer_y.named_transformers_['scaler'].inverse_transform(y.cpu().numpy())
-
-    return y.flatten(), y_hat.flatten()
-
-def get_predictions_2(y, y_hat, transformer_y):
+def get_predictions(y, y_hat, transformer_y):
 
     y = transformer_y.named_transformers_['scaler'].inverse_transform(y)
     y_hat = transformer_y.named_transformers_['scaler'].inverse_transform(y_hat)
