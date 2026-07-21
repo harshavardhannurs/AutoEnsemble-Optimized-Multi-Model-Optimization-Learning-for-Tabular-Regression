@@ -53,17 +53,6 @@ def get_combined_dataset(dataset_name):
 
     return dataset
 
-def get_input_features_count(dataset_name):
-
-    """
-    Returns the number of input features in the dataset.
-    """
-
-    dataset = get_combined_dataset(dataset_name)
-    X, y = split_features_and_target(dataset)
-
-    return X.shape[1]
-
 def split_features_and_target(df, target_column='target'):
 
     """
@@ -105,24 +94,24 @@ def to_tensor(x):
     else:
         raise TypeError(f"Expected numpy.ndarray or torch.Tensor, got {type(x)}")
 
-def create_dataloaders(X_train, y_train, X_test, y_test, batch_size=32):
+def get_dataloader(X, y, batch_size=64, is_test=False):
 
     """
-    Creates dataloaders for training and testing. Dataloaders enable splitting of datasets into mini-batches.
+    Creates dataloader out of two tensors of the same shape. Dataloaders enable splitting of datasets into mini-batches.
     """
 
-    X_train, y_train, X_test, y_test = map(to_tensor, (X_train, y_train, X_test, y_test))
+    X, y = map(to_tensor, (X, y))
 
-    y_train = y_train.reshape(-1, 1)
-    y_test = y_test.reshape(-1, 1)
+    y = y.reshape(-1, 1)
 
-    train_data = TensorDataset(X_train, y_train)
-    test_data = TensorDataset(X_test, y_test)
+    dataset = TensorDataset(X, y)
 
-    train_ldr = DataLoader(train_data, batch_size=batch_size, drop_last=True)
-    test_ldr = DataLoader(test_data, batch_size=test_data.tensors[0].shape[0])
+    if not is_test:
+        ldr = DataLoader(dataset, batch_size=batch_size, drop_last=True)
+    else:
+        ldr = DataLoader(dataset, batch_size=dataset.tensors[0].shape[0])
 
-    return train_ldr, test_ldr
+    return ldr
 
 def data_transformer(X, y, categorical_strategy='most_frequent', non_categorical_strategy='mean'):
 

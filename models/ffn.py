@@ -3,31 +3,11 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from sklearn.model_selection import KFold
+
 import utils.data_utils as du
 import utils.model_utils as mu
-
-def prepare_data(dataset_name, batch_size=64):
-    data = du.get_combined_dataset(dataset_name)
-    X, y = du.split_features_and_target(data)
-    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2)
-
-    transformer_X, transformer_y = du.data_transformer(X_train, y_train)
-
-    X_train = transformer_X.fit_transform(X_train)
-    X_test = transformer_X.transform(X_test)
-
-    y_train = transformer_y.fit_transform(y_train)
-    y_test = transformer_y.transform(y_test)
-
-    # Convert sparse matrices to dense arrays if needed
-    if hasattr(X_train, "toarray"):
-        X_train = X_train.toarray()
-    if hasattr(X_test, "toarray"):
-        X_test = X_test.toarray()
-
-    train_ldr, test_ldr = du.create_dataloaders(X_train, y_train, X_test, y_test, batch_size=batch_size)
-
-    return train_ldr, test_ldr, X_train.shape[1], transformer_y
 
 def setup_model(
         no_of_feats,
@@ -83,60 +63,127 @@ def setup_model(
 
     return model, optimizer, loss_function
 
-def train_model(
-        model,
-        optimizer,
-        loss_function,
-        train_ldr,
-        test_ldr,
-        num_epochs=200,
+def prepare_data(dataset_name):
+
+    data = du.get_combined_dataset(dataset_name)
+    X, y = du.split_features_and_target(data)
+    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2)
+
+    # if hasattr(X_train, "to_numpy"):
+    #     X_train = X_train.to_numpy()
+    # if hasattr(X_test, "to_numpy"):
+    #     X_test = X_test.to_numpy()
+    # if hasattr(y_train, "to_numpy"):
+    #     y_train = y_train.to_numpy()
+    # if hasattr(y_test, "to_numpy"):
+    #     y_test = y_test.to_numpy()
+
+    return X_train, X_test, y_train, y_test
+
+def run_cv(
+        X_train,
+        y_train,
+        model_hps,
+        batch_size=64,
+        num_epochs=500,
+        n_splits=10
 ):
 
     device = mu.set_device()
 
-    model.to(device)
+    kf = KFold(n_splits=n_splits, shuffle=True)
 
-    train_losses = np.zeros((num_epochs,))
-    test_losses = np.zeros((num_epochs,))
+    train_loss_across_folds = np.zeros((n_splits, num_epochs))
+    val_loss_across_folds = np.zeros((n_splits, num_epochs))
 
-    for epochi in range(num_epochs):
+    for i, (train_indices, val_indices) in enumerate(kf.split(X_train)):
 
-        model.train()
+        X_train_fold = X_train.iloc[train_indices]
+        X_val_fold = X_train.iloc[val_indices]
+        y_train_fold = y_train.iloc[train_indices]
+        y_val_fold = y_train.iloc[val_indices]
 
-        batch_losses = []
+        # Now apply the transformation
+        transformer_X, transformer_y = du.data_transformer(X_train_fold, y_train_fold)
 
-        for X, y in train_ldr:
+        X_train_fold = transformer_X.fit_transform(X_train_fold)
+        X_val_fold = transformer_X.transform(X_val_fold)
 
-            X = X.to(device)
-            y = y.to(device)
+        y_train_fold = transformer_y.fit_transform(y_train_fold)
+        y_val_fold = transformer_y.transform(y_val_fold)
 
-            y_hat = model(X)
+        # Convert sparse matrices to dense arrays if needed
+        if hasattr(X_train_fold, "toarray"):
+            X_train_fold = X_train_fold.toarray()
+        if hasattr(X_val_fold, "toarray"):
+            X_val_fold = X_val_fold.toarray()
+        if hasattr(y_train_fold, "toarray"):
+            y_train_fold = y_train_fold.toarray()
+        if hasattr(y_val_fold, "toarray"):
+            y_val_fold = y_val_fold.toarray()
 
-            loss = loss_function(y_hat, y)
-            batch_losses.append(loss.item())
+        no_of_feats = X_train_fold.shape[1]
+        no_of_layers, no_of_units, learning_rate, weight_decay, batch_norm = model_hps
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+        model, optimizer, loss_function = setup_model(
+            no_of_feats=no_of_feats,
+            no_of_layers=no_of_layers,
+            no_of_units=no_of_units,
+            learning_rate=learning_rate,
+            weight_decay=weight_decay,
+            batch_norm=batch_norm
+        )
 
-        train_losses[epochi] = np.mean(batch_losses)
+        model.to(device)
 
-        model.eval()
+        train_ldr = du.get_dataloader(X_train_fold, y_train_fold, batch_size=batch_size)
+        val_ldr = du.get_dataloader(X_val_fold, y_val_fold, is_test=True)
 
-        with torch.no_grad():
+        train_loss_across_epochs = np.zeros((num_epochs,))
+        val_loss_across_epochs = np.zeros((num_epochs,))
 
-            X, y = next(iter(test_ldr))
+        print(f'CV Fold: {i + 1}/{n_splits}')
 
-            X = X.to(device)
-            y = y.to(device)
+        for epochi in range(num_epochs):
 
-            y_hat = model(X)
+            model.train()
 
-            test_losses[epochi] = loss_function(y_hat, y).item()
+            batch_losses = []
 
-        print(f'Epoch {epochi + 1} -> Train Loss: {train_losses[epochi]:.4f} | Test Loss: {test_losses[epochi]:.4f}')
+            for X, y in train_ldr:
+                X = X.to(device)
+                y = y.to(device)
 
-    return model, train_losses, test_losses
+                y_hat = model(X)
+
+                loss = loss_function(y_hat, y)
+                batch_losses.append(loss.item())
+
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+            train_loss_across_epochs[epochi] = np.mean(batch_losses)
+
+            model.eval()
+
+            with torch.no_grad():
+
+                X_val, y_val = next(iter(val_ldr))
+
+                X_val = X_val.to(device)
+                y_val = y_val.to(device)
+
+                y_val_hat = model(X_val)
+
+                val_loss_across_epochs[epochi] = loss_function(y_val_hat, y_val).item()
+
+            print(f'Epoch {epochi + 1}/{num_epochs} -> Train Loss: {train_loss_across_epochs[epochi]:.4f} || Validation Loss: {val_loss_across_epochs[epochi]:.4f}')
+
+        train_loss_across_folds[i, :] = train_loss_across_epochs
+        val_loss_across_folds[i, :] = val_loss_across_epochs
+
+    return train_loss_across_folds, val_loss_across_folds
 
 def pipelined_model(
         dataset_name,
@@ -146,48 +193,34 @@ def pipelined_model(
         learning_rate,
         weight_decay,
         batch_norm,
-        num_epochs
+        num_epochs,
+        n_splits
 ):
 
-    train_ldr, test_ldr, no_of_feats, transformer_y = prepare_data(dataset_name=dataset_name, batch_size=batch_size)
+    X_train, X_test, y_train, y_test  = prepare_data(dataset_name)
 
-    model, optimizer, loss_function = setup_model(
-        no_of_feats=no_of_feats,
-        no_of_layers=no_of_layers,
-        no_of_units=no_of_units,
-        learning_rate=learning_rate,
-        weight_decay=weight_decay,
-        batch_norm=batch_norm
+    train_loss_across_folds, val_loss_across_folds = run_cv(
+        X_train=X_train,
+        y_train=y_train,
+        model_hps=(no_of_layers, no_of_units, learning_rate, weight_decay, batch_norm),
+        batch_size=batch_size,
+        num_epochs=num_epochs,
+        n_splits=n_splits
     )
 
-    model, train_losses, test_losses = train_model(
-        model=model,
-        optimizer=optimizer,
-        loss_function=loss_function,
-        train_ldr=train_ldr,
-        test_ldr=test_ldr,
-        num_epochs=num_epochs
-    )
-    # Use this trained model for predictions
-
-    y, y_hat = mu.get_predictions(model, test_ldr, mu.set_device(), transformer_y)
-
-    return model, train_losses, test_losses, y, y_hat
+    return train_loss_across_folds, val_loss_across_folds
 
 if __name__ == '__main__':
-    model, train_losses, test_losses, y, y_hat = pipelined_model(
-        dataset_name='brazilian_houses',
+    train_loss_across_folds, val_loss_across_folds = pipelined_model(
+        dataset_name='bike_sharing_demand',
         batch_size=64,
-        no_of_layers=3,
+        no_of_layers=2,
         no_of_units=128,
         learning_rate=0.001,
         weight_decay=0.001,
         batch_norm=False,
-        num_epochs=500
+        num_epochs=50,
+        n_splits=5
     )
 
-    mu.plot_losses(train_losses, test_losses)
-    avg_test_loss = mu.average_test_loss(test_losses)
-
-    print(f"Model training completed with the average test loss of {avg_test_loss:.4f}. You can now use the trained model for predictions.")
-    print(f"R2 Score: {mu.get_r2_score(y, y_hat):.4f}")
+    mu.plot_losses(train_loss_across_folds, val_loss_across_folds)

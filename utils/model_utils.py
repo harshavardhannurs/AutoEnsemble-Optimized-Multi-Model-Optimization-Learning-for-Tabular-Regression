@@ -14,17 +14,23 @@ def set_device():
 
     return device
 
-def plot_losses(train_losses, test_losses):
+def plot_losses(train_loss_across_folds, val_loss_across_folds):
 
     fig, [ax1, ax2] = plt.subplots(1, 2, figsize=(12, 4))
 
-    ax1.plot(train_losses, label='Train Loss')
+    for i in range(len(train_loss_across_folds)):
+        ax1.plot(train_loss_across_folds[i], label=f'Fold {i + 1}')
     ax1.set_xlabel('Epochs')
     ax1.set_ylabel('Train Loss')
+    ax1.legend()
 
-    ax2.plot(test_losses, label='Test Loss')
+    for i in range(len(val_loss_across_folds)):
+        ax2.plot(val_loss_across_folds[i], label=f'Fold {i + 1}')
     ax2.set_xlabel('Epochs')
-    ax2.set_ylabel('Test Loss')
+    ax2.set_ylabel('Validation Loss')
+    ax2.legend()
+
+    fig.suptitle('Training and Validation Losses')
 
     plt.show()
 
@@ -44,9 +50,9 @@ def get_predictions(model, test_ldr, device, transformer_y):
 
     return y.flatten(), y_hat.flatten()
 
-def average_test_loss(test_losses):
+def average_test_loss(test_losses, num_epochs):
 
-    return np.mean(test_losses)
+    return np.mean(test_losses[-num_epochs:])
 
 def get_r2_score(y, y_hat):
 
