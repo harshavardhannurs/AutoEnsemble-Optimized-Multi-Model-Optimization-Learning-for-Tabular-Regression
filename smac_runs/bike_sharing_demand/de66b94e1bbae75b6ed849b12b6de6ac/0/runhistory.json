@@ -1,0 +1,122 @@
+{
+  "stats": {
+    "submitted": 5,
+    "finished": 5,
+    "running": 0
+  },
+  "data": [
+    {
+      "config_id": 1,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.08074672818183903,
+      "time": 242.34486889839172,
+      "cpu_time": 160.13209400000005,
+      "status": 1,
+      "starttime": 1784640794.0582578,
+      "endtime": 1784641036.4052181,
+      "additional_info": {}
+    },
+    {
+      "config_id": 2,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.3920391417811391,
+      "time": 0.576063871383667,
+      "cpu_time": 3.584295000000111,
+      "status": 1,
+      "starttime": 1784641036.409635,
+      "endtime": 1784641036.988375,
+      "additional_info": {}
+    },
+    {
+      "config_id": 3,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.09215369843581445,
+      "time": 2.060411214828491,
+      "cpu_time": 11.452370999999857,
+      "status": 1,
+      "starttime": 1784641036.9910111,
+      "endtime": 1784641039.053976,
+      "additional_info": {}
+    },
+    {
+      "config_id": 4,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.07076858725084334,
+      "time": 1.125303030014038,
+      "cpu_time": 1.7675060000001395,
+      "status": 1,
+      "starttime": 1784641039.0564108,
+      "endtime": 1784641040.183946,
+      "additional_info": {}
+    },
+    {
+      "config_id": 5,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.06596412979566624,
+      "time": 12.974493026733398,
+      "cpu_time": 98.06611599999997,
+      "status": 1,
+      "starttime": 1784641040.186636,
+      "endtime": 1784641053.163177,
+      "additional_info": {}
+    }
+  ],
+  "configs": {
+    "1": {
+      "model": "ffn",
+      "ffn_batch_norm": false,
+      "ffn_batch_size": 64,
+      "ffn_learning_rate": 0.001,
+      "ffn_no_of_layers": 2,
+      "ffn_no_of_units": 128,
+      "ffn_num_epochs": 100,
+      "ffn_weight_decay": 0.0001
+    },
+    "2": {
+      "model": "knn",
+      "knn_n_neighbors": 5,
+      "knn_p": 2,
+      "knn_weights": "uniform"
+    },
+    "3": {
+      "model": "random_forest",
+      "rf_max_depth": 10,
+      "rf_max_features": 1.0,
+      "rf_min_samples_leaf": 1,
+      "rf_n_estimators": 100
+    },
+    "4": {
+      "model": "xgboost",
+      "xgb_colsample_bytree": 1.0,
+      "xgb_learning_rate": 0.1,
+      "xgb_max_depth": 6,
+      "xgb_n_estimators": 100,
+      "xgb_subsample": 1.0
+    },
+    "5": {
+      "model": "hgb",
+      "hgb_l2_regularization": 0.0001,
+      "hgb_learning_rate": 0.1,
+      "hgb_max_iter": 100,
+      "hgb_max_leaf_nodes": 31,
+      "hgb_min_samples_leaf": 20
+    }
+  },
+  "config_origins": {
+    "1": "Initial design",
+    "2": "Initial design",
+    "3": "Initial design",
+    "4": "Initial design",
+    "5": "Initial design"
+  }
+}

@@ -5,6 +5,7 @@
 - Random Forest – RandomForestRegressor
 - KNN – KNeighborsRegressor
 - Feed Forward Neural Network
+- Histogram Gradient Boosting – HistGradientBoostingRegressor
 
 ## Hyperparameter Space
 - XGBoost
@@ -30,4 +31,9 @@
     - weight_decay: 1e-6 - 1e-3 (log scale)
     - batch_norm: True/False
     - num_epochs: 100-1000
-
+- Histogram Gradient Boosting
+    - max_iter: 100-500
+    - learning_rate: 0.01-0.3 (log scale)
+    - max_leaf_nodes: 15-63
+    - min_samples_leaf: 10-50
+    - l2_regularization: 1e-6-1 (log scale)

@@ -23,9 +23,9 @@ dataset = st.selectbox(
 
 trials = st.number_input(
     "SMAC trials",
-    min_value=4,
+    min_value=5,
     value=10,
-    help="At least four trials are required to evaluate every model once.",
+    help="At least five trials are required to evaluate every model once.",
 )
 folds = st.number_input("Cross-validation folds", min_value=2, value=5)
 

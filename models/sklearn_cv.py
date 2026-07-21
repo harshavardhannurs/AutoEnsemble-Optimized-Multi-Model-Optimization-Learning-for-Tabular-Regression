@@ -30,6 +30,8 @@ def run_cv(X_train, y_train, model_factory, n_splits=5):
         transformer_X, transformer_y = du.data_transformer(X_train_fold, y_train_fold)
         X_train_fold = transformer_X.fit_transform(X_train_fold)
         X_validation_fold = transformer_X.transform(X_validation_fold)
+        X_train_fold = du.to_dense(X_train_fold)
+        X_validation_fold = du.to_dense(X_validation_fold)
         y_train_fold = transformer_y.fit_transform(y_train_fold)
         y_validation_fold = transformer_y.transform(y_validation_fold)
 

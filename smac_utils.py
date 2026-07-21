@@ -18,6 +18,7 @@ from ConfigSpace import (
 from smac import HyperparameterOptimizationFacade, Scenario
 
 from models.ffn import ffn_pipelined_model
+from models.hgb import hgb_pipelined_model
 from models.knn import knn_pipelined_model
 from models.random_forest import random_forest_pipelined_model
 from models.xgboost import xgboost_pipelined_model
@@ -61,7 +62,7 @@ def get_configspace():
     space = ConfigurationSpace(seed=42)
     model = Categorical(
         "model",
-        ["ffn", "knn", "random_forest", "xgboost"],
+        ["ffn", "knn", "random_forest", "xgboost", "hgb"],
         default="ffn",
     )
     parameters = {
@@ -91,6 +92,13 @@ def get_configspace():
             Integer("xgb_max_depth", (3, 10), default=6),
             Float("xgb_subsample", (0.5, 1.0), default=1.0),
             Float("xgb_colsample_bytree", (0.5, 1.0), default=1.0),
+        ],
+        "hgb": [
+            Integer("hgb_max_iter", (100, 500), default=100),
+            Float("hgb_learning_rate", (0.01, 0.3), default=0.1, log=True),
+            Integer("hgb_max_leaf_nodes", (15, 63), default=31),
+            Integer("hgb_min_samples_leaf", (10, 50), default=20),
+            Float("hgb_l2_regularization", (1e-6, 1.0), default=1e-4, log=True),
         ],
     }
 
@@ -140,7 +148,7 @@ def run_configuration(config, dataset_name, n_splits):
             max_features=config["rf_max_features"],
             n_splits=n_splits,
         )
-    else:
+    elif model == "xgboost":
         result = xgboost_pipelined_model(
             dataset_name=dataset_name,
             n_estimators=config["xgb_n_estimators"],
@@ -148,6 +156,16 @@ def run_configuration(config, dataset_name, n_splits):
             max_depth=config["xgb_max_depth"],
             subsample=config["xgb_subsample"],
             colsample_bytree=config["xgb_colsample_bytree"],
+            n_splits=n_splits,
+        )
+    else:
+        result = hgb_pipelined_model(
+            dataset_name=dataset_name,
+            max_iter=config["hgb_max_iter"],
+            learning_rate=config["hgb_learning_rate"],
+            max_leaf_nodes=config["hgb_max_leaf_nodes"],
+            min_samples_leaf=config["hgb_min_samples_leaf"],
+            l2_regularization=config["hgb_l2_regularization"],
             n_splits=n_splits,
         )
 
@@ -161,6 +179,7 @@ def get_initial_configurations(space, n_trials):
         "knn": "knn_",
         "random_forest": "rf_",
         "xgboost": "xgb_",
+        "hgb": "hgb_",
     }
     configurations = []
     for model, prefix in prefixes.items():
@@ -180,7 +199,13 @@ def clean_best_config(config):
     """Remove internal model prefixes from the result shown to users."""
     config = config_to_dict(config)
     model = config.pop("model")
-    prefix = {"ffn": "ffn_", "knn": "knn_", "random_forest": "rf_", "xgboost": "xgb_"}[model]
+    prefix = {
+        "ffn": "ffn_",
+        "knn": "knn_",
+        "random_forest": "rf_",
+        "xgboost": "xgb_",
+        "hgb": "hgb_",
+    }[model]
     return {"model": model, **{name.removeprefix(prefix): value for name, value in config.items()}}
 
 
