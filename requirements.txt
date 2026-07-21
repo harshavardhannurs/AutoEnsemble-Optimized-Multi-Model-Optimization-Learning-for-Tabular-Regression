@@ -56,4 +56,5 @@ tornado==6.5.7
 typing_extensions==4.16.0
 tzdata==2026.3
 urllib3==2.6.3
+xgboost==3.3.0
 zipp==3.23.1

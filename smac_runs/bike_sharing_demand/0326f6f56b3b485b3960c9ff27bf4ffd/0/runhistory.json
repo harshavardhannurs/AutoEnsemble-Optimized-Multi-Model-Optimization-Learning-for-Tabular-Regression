@@ -1,0 +1,122 @@
+{
+  "stats": {
+    "submitted": 5,
+    "finished": 5,
+    "running": 0
+  },
+  "data": [
+    {
+      "config_id": 1,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.10271218419075012,
+      "time": 31.23669195175171,
+      "cpu_time": 21.013211000000002,
+      "status": 1,
+      "starttime": 1784638572.9292228,
+      "endtime": 1784638604.167747,
+      "additional_info": {}
+    },
+    {
+      "config_id": 2,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.4513731926293698,
+      "time": 0.3653078079223633,
+      "cpu_time": 1.762041,
+      "status": 1,
+      "starttime": 1784638604.169973,
+      "endtime": 1784638604.537316,
+      "additional_info": {}
+    },
+    {
+      "config_id": 3,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.10825265434682707,
+      "time": 0.4761791229248047,
+      "cpu_time": 2.363378000000001,
+      "status": 1,
+      "starttime": 1784638604.540781,
+      "endtime": 1784638605.0190048,
+      "additional_info": {}
+    },
+    {
+      "config_id": 4,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.07494569396184392,
+      "time": 0.2619950771331787,
+      "cpu_time": 0.3949430000000014,
+      "status": 1,
+      "starttime": 1784638605.021405,
+      "endtime": 1784638605.285106,
+      "additional_info": {}
+    },
+    {
+      "config_id": 5,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.0876661635016267,
+      "time": 2.023677110671997,
+      "cpu_time": 3.4710100000000033,
+      "status": 1,
+      "starttime": 1784638605.514716,
+      "endtime": 1784638607.539949,
+      "additional_info": {}
+    }
+  ],
+  "configs": {
+    "1": {
+      "model": "ffn",
+      "ffn_batch_norm": false,
+      "ffn_batch_size": 64,
+      "ffn_learning_rate": 0.001,
+      "ffn_no_of_layers": 2,
+      "ffn_no_of_units": 128,
+      "ffn_num_epochs": 100,
+      "ffn_weight_decay": 0.0001
+    },
+    "2": {
+      "model": "knn",
+      "knn_n_neighbors": 5,
+      "knn_p": 2,
+      "knn_weights": "uniform"
+    },
+    "3": {
+      "model": "random_forest",
+      "rf_max_depth": 10,
+      "rf_max_features": 1.0,
+      "rf_min_samples_leaf": 1,
+      "rf_n_estimators": 100
+    },
+    "4": {
+      "model": "xgboost",
+      "xgb_colsample_bytree": 1.0,
+      "xgb_learning_rate": 0.1,
+      "xgb_max_depth": 6,
+      "xgb_n_estimators": 100,
+      "xgb_subsample": 1.0
+    },
+    "5": {
+      "model": "xgboost",
+      "xgb_colsample_bytree": 0.6463685668546,
+      "xgb_learning_rate": 0.1060488834643,
+      "xgb_max_depth": 9,
+      "xgb_n_estimators": 654,
+      "xgb_subsample": 0.5198286299399
+    }
+  },
+  "config_origins": {
+    "1": "Acquisition Function Maximizer: Local Search",
+    "2": "Acquisition Function Maximizer: Local Search",
+    "3": "Acquisition Function Maximizer: Local Search",
+    "4": "Acquisition Function Maximizer: Local Search",
+    "5": "Acquisition Function Maximizer: Local Search"
+  }
+}

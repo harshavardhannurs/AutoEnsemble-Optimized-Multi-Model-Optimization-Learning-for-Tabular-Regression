@@ -2,7 +2,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from smac_utils import optimize_ffn
+from smac_utils import optimize_models
 
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
@@ -13,7 +13,7 @@ datasets = sorted(
 )
 
 st.set_page_config(page_title="AutoML with SMAC", page_icon="⚡")
-st.title("AutoML with SMAC")
+st.title("AutoML Model Selection with SMAC")
 
 dataset = st.selectbox(
     "Choose a dataset",
@@ -21,7 +21,12 @@ dataset = st.selectbox(
     format_func=lambda name: name.replace("_", " ").title(),
 )
 
-trials = st.number_input("SMAC trials", min_value=1, value=10)
+trials = st.number_input(
+    "SMAC trials",
+    min_value=4,
+    value=10,
+    help="At least four trials are required to evaluate every model once.",
+)
 folds = st.number_input("Cross-validation folds", min_value=2, value=5)
 
 if st.button("Find best hyperparameters", type="primary"):
@@ -34,8 +39,8 @@ if st.button("Find best hyperparameters", type="primary"):
             live_log.code("\n".join(log_messages[-30:]), language=None)
 
     try:
-        with st.spinner("SMAC is testing FFN configurations..."):
-            best_config, best_r2 = optimize_ffn(
+        with st.spinner("SMAC is testing model configurations..."):
+            best_config, best_r2 = optimize_models(
                 dataset,
                 int(trials),
                 int(folds),
