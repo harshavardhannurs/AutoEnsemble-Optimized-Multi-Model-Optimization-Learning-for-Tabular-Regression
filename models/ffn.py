@@ -69,15 +69,6 @@ def prepare_data(dataset_name):
     X, y = du.split_features_and_target(data)
     X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2)
 
-    # if hasattr(X_train, "to_numpy"):
-    #     X_train = X_train.to_numpy()
-    # if hasattr(X_test, "to_numpy"):
-    #     X_test = X_test.to_numpy()
-    # if hasattr(y_train, "to_numpy"):
-    #     y_train = y_train.to_numpy()
-    # if hasattr(y_test, "to_numpy"):
-    #     y_test = y_test.to_numpy()
-
     return X_train, X_test, y_train, y_test
 
 def run_cv(
