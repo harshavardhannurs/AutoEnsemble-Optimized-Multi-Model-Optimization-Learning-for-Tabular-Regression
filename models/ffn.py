@@ -1,3 +1,7 @@
+import os
+import sys
+from pathlib import Path
+
 import numpy as np
 
 import torch
@@ -8,8 +12,12 @@ from copy import deepcopy
 
 from sklearn.model_selection import KFold
 
-import utils.data_utils as du
-import utils.model_utils as mu
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
+
+from utils import data_utils as du
+from utils import model_utils as mu
 
 def setup_model(
         no_of_feats,
