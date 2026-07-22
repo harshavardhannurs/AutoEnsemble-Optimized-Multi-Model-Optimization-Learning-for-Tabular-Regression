@@ -17,6 +17,8 @@ from ConfigSpace import (
 )
 from smac import HyperparameterOptimizationFacade, Scenario
 
+from models.ensemble import ensemble_pipelined_model
+from models.extra_trees import extra_trees_pipelined_model
 from models.ffn import ffn_pipelined_model
 from models.hgb import hgb_pipelined_model
 from models.knn import knn_pipelined_model
@@ -62,7 +64,7 @@ def get_configspace():
     space = ConfigurationSpace(seed=42)
     model = Categorical(
         "model",
-        ["ffn", "knn", "random_forest", "xgboost", "hgb"],
+        ["ffn", "knn", "random_forest", "extra_trees", "xgboost", "hgb"],
         default="ffn",
     )
     parameters = {
@@ -85,6 +87,12 @@ def get_configspace():
             Integer("rf_max_depth", (5, 30), default=10),
             Integer("rf_min_samples_leaf", (1, 10), default=1),
             Float("rf_max_features", (0.5, 1.0), default=1.0),
+        ],
+        "extra_trees": [
+            Integer("et_n_estimators", (100, 500), default=100),
+            Integer("et_max_depth", (5, 30), default=10),
+            Integer("et_min_samples_leaf", (1, 10), default=1),
+            Float("et_max_features", (0.5, 1.0), default=1.0),
         ],
         "xgboost": [
             Integer("xgb_n_estimators", (100, 1000), default=100),
@@ -148,6 +156,15 @@ def run_configuration(config, dataset_name, n_splits):
             max_features=config["rf_max_features"],
             n_splits=n_splits,
         )
+    elif model == "extra_trees":
+        result = extra_trees_pipelined_model(
+            dataset_name=dataset_name,
+            n_estimators=config["et_n_estimators"],
+            max_depth=config["et_max_depth"],
+            min_samples_leaf=config["et_min_samples_leaf"],
+            max_features=config["et_max_features"],
+            n_splits=n_splits,
+        )
     elif model == "xgboost":
         result = xgboost_pipelined_model(
             dataset_name=dataset_name,
@@ -178,6 +195,7 @@ def get_initial_configurations(space, n_trials):
         "ffn": "ffn_",
         "knn": "knn_",
         "random_forest": "rf_",
+        "extra_trees": "et_",
         "xgboost": "xgb_",
         "hgb": "hgb_",
     }
@@ -203,10 +221,39 @@ def clean_best_config(config):
         "ffn": "ffn_",
         "knn": "knn_",
         "random_forest": "rf_",
+        "extra_trees": "et_",
         "xgboost": "xgb_",
         "hgb": "hgb_",
     }[model]
     return {"model": model, **{name.removeprefix(prefix): value for name, value in config.items()}}
+
+
+def build_stage_two_ensemble(trial_results):
+    """Select strong model families and weight them by Stage-1 CV performance."""
+    best_by_model = {}
+    for result in trial_results:
+        model = result["config"]["model"]
+        if model not in best_by_model or result["mean_r2"] > best_by_model[model]["mean_r2"]:
+            best_by_model[model] = result
+
+    ranked = sorted(best_by_model.values(), key=lambda result: result["mean_r2"], reverse=True)
+    best_score = ranked[0]["mean_r2"]
+    selected = [result for result in ranked if result["mean_r2"] >= best_score - 0.03][:4]
+    if len(selected) < 2:
+        selected = ranked[:2]
+
+    scores = np.array([result["mean_r2"] for result in selected])
+    weights = np.exp((scores - scores.max()) / 0.02)
+    weights /= weights.sum()
+    return [
+        {
+            "name": result["config"]["model"],
+            "weight": float(weight),
+            "stage_one_r2": result["mean_r2"],
+            "config": result["config"],
+        }
+        for result, weight in zip(selected, weights)
+    ]
 
 
 def optimize_models(
@@ -218,6 +265,7 @@ def optimize_models(
 ):
     """Return the best model configuration and its mean CV R2."""
     trial_number = 0
+    trial_results = []
 
     def report(message):
         print(message, flush=True)
@@ -236,6 +284,7 @@ def optimize_models(
             r2_scores = run_configuration(config, dataset_name, n_splits)
 
         mean_r2 = float(mu.average_test_loss(r2_scores))
+        trial_results.append({"config": clean_best_config(config), "mean_r2": mean_r2})
         report(f"Trial {trial_number}/{n_trials} finished - Mean R2: {mean_r2:.4f}")
         return 1.0 - mean_r2 if np.isfinite(mean_r2) else 1e10
 
@@ -256,7 +305,31 @@ def optimize_models(
         initial_design=initial_design,
         overwrite=True,
     )
-    best_config = optimizer.optimize()
-    best_cost = optimizer.runhistory.get_cost(best_config)
+    optimizer.optimize()
 
-    return clean_best_config(best_config), 1.0 - float(best_cost)
+    best_individual = max(trial_results, key=lambda result: result["mean_r2"])
+    selected_models = build_stage_two_ensemble(trial_results)
+    report("Stage 2 ensemble started")
+    for member in selected_models:
+        report(
+            f"Selected {member['name']} - Stage 1 R2: {member['stage_one_r2']:.4f} "
+            f"- Weight: {member['weight']:.4f}"
+        )
+
+    with contextlib.redirect_stdout(LiveOutput(progress_callback)):
+        _, _, ensemble_scores = ensemble_pipelined_model(
+            dataset_name,
+            selected_models,
+            n_splits=n_splits,
+        )
+    ensemble_r2 = float(mu.average_test_loss(ensemble_scores))
+    report(f"Stage 2 ensemble finished - Mean R2: {ensemble_r2:.4f}")
+
+    if ensemble_r2 > best_individual["mean_r2"]:
+        return {
+            "model": "ensemble",
+            "selected_models": selected_models,
+        }, ensemble_r2
+
+    report("Stage 2 did not beat the best individual model; keeping the individual model.")
+    return best_individual["config"], best_individual["mean_r2"]

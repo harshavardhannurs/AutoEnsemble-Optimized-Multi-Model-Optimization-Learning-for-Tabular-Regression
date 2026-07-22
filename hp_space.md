@@ -3,9 +3,11 @@
 ## Models
 - XGBoost – XGBRegressor
 - Random Forest – RandomForestRegressor
+- Extra Trees – ExtraTreesRegressor
 - KNN – KNeighborsRegressor
 - Feed Forward Neural Network
 - Histogram Gradient Boosting – HistGradientBoostingRegressor
+- Stage 2 weighted ensemble – selected tuned models
 
 ## Hyperparameter Space
 - XGBoost
@@ -15,6 +17,11 @@
     - subsample: 0.5-1
     - colsample_bytree: 0.5-1
 - Random Forest
+    - n_estimators: 100-500
+    - max_depth: 5-30
+    - min_samples_leaf: 1-10
+    - max_features: 0.5-1
+- Extra Trees
     - n_estimators: 100-500
     - max_depth: 5-30
     - min_samples_leaf: 1-10
@@ -37,3 +44,7 @@
     - max_leaf_nodes: 15-63
     - min_samples_leaf: 10-50
     - l2_regularization: 1e-6-1 (log scale)
+- Stage 2 Weighted Ensemble
+    - selects the strongest tuned model families from Stage 1
+    - excludes models more than 0.03 R2 behind the best model
+    - derives normalized weights from Stage-1 cross-validation scores

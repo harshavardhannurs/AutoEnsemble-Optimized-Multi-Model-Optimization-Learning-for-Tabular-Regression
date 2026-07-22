@@ -1,0 +1,227 @@
+{
+  "stats": {
+    "submitted": 10,
+    "finished": 10,
+    "running": 0
+  },
+  "data": [
+    {
+      "config_id": 1,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.944856834411621,
+      "time": 106.96579480171204,
+      "cpu_time": 77.24757699999827,
+      "status": 1,
+      "starttime": 1784649891.854147,
+      "endtime": 1784649998.8232121,
+      "additional_info": {}
+    },
+    {
+      "config_id": 2,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 1.065333753972383,
+      "time": 0.7490181922912598,
+      "cpu_time": 3.986018999999942,
+      "status": 1,
+      "starttime": 1784649998.825742,
+      "endtime": 1784649999.5770502,
+      "additional_info": {}
+    },
+    {
+      "config_id": 3,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.9532752167375366,
+      "time": 2.4321470260620117,
+      "cpu_time": 17.148237000001245,
+      "status": 1,
+      "starttime": 1784649999.57933,
+      "endtime": 1784650002.0135732,
+      "additional_info": {}
+    },
+    {
+      "config_id": 4,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.9411371053310195,
+      "time": 1.4105441570281982,
+      "cpu_time": 5.916313000001537,
+      "status": 1,
+      "starttime": 1784650002.016236,
+      "endtime": 1784650003.429413,
+      "additional_info": {}
+    },
+    {
+      "config_id": 5,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.9976175583810442,
+      "time": 1.0622069835662842,
+      "cpu_time": 1.7466249999997672,
+      "status": 1,
+      "starttime": 1784650003.437008,
+      "endtime": 1784650004.503403,
+      "additional_info": {}
+    },
+    {
+      "config_id": 6,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.958114574651499,
+      "time": 7.74267578125,
+      "cpu_time": 50.19260199999917,
+      "status": 1,
+      "starttime": 1784650004.506421,
+      "endtime": 1784650012.251603,
+      "additional_info": {}
+    },
+    {
+      "config_id": 7,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.9402587917510833,
+      "time": 6.502670764923096,
+      "cpu_time": 41.55703200000062,
+      "status": 1,
+      "starttime": 1784650012.6405509,
+      "endtime": 1784650019.145822,
+      "additional_info": {}
+    },
+    {
+      "config_id": 8,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.9420532230623825,
+      "time": 2.3109970092773438,
+      "cpu_time": 9.05442100000073,
+      "status": 1,
+      "starttime": 1784650019.150066,
+      "endtime": 1784650021.46401,
+      "additional_info": {}
+    },
+    {
+      "config_id": 9,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.9163402815145575,
+      "time": 3.747286081314087,
+      "cpu_time": 22.420828000002075,
+      "status": 1,
+      "starttime": 1784650021.4677079,
+      "endtime": 1784650025.217361,
+      "additional_info": {}
+    },
+    {
+      "config_id": 10,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.9394069096052187,
+      "time": 5.39009690284729,
+      "cpu_time": 39.01900200000091,
+      "status": 1,
+      "starttime": 1784650025.2215512,
+      "endtime": 1784650030.6142669,
+      "additional_info": {}
+    }
+  ],
+  "configs": {
+    "1": {
+      "model": "ffn",
+      "ffn_batch_norm": false,
+      "ffn_batch_size": 64,
+      "ffn_learning_rate": 0.001,
+      "ffn_no_of_layers": 2,
+      "ffn_no_of_units": 128,
+      "ffn_num_epochs": 100,
+      "ffn_weight_decay": 0.0001
+    },
+    "2": {
+      "model": "knn",
+      "knn_n_neighbors": 5,
+      "knn_p": 2,
+      "knn_weights": "uniform"
+    },
+    "3": {
+      "model": "random_forest",
+      "rf_max_depth": 10,
+      "rf_max_features": 1.0,
+      "rf_min_samples_leaf": 1,
+      "rf_n_estimators": 100
+    },
+    "4": {
+      "model": "extra_trees",
+      "et_max_depth": 10,
+      "et_max_features": 1.0,
+      "et_min_samples_leaf": 1,
+      "et_n_estimators": 100
+    },
+    "5": {
+      "model": "xgboost",
+      "xgb_colsample_bytree": 1.0,
+      "xgb_learning_rate": 0.1,
+      "xgb_max_depth": 6,
+      "xgb_n_estimators": 100,
+      "xgb_subsample": 1.0
+    },
+    "6": {
+      "model": "hgb",
+      "hgb_l2_regularization": 0.0001,
+      "hgb_learning_rate": 0.1,
+      "hgb_max_iter": 100,
+      "hgb_max_leaf_nodes": 31,
+      "hgb_min_samples_leaf": 20
+    },
+    "7": {
+      "model": "extra_trees",
+      "et_max_depth": 26,
+      "et_max_features": 0.955655686165,
+      "et_min_samples_leaf": 1,
+      "et_n_estimators": 269
+    },
+    "8": {
+      "model": "extra_trees",
+      "et_max_depth": 7,
+      "et_max_features": 0.6153177142217,
+      "et_min_samples_leaf": 5,
+      "et_n_estimators": 341
+    },
+    "9": {
+      "model": "extra_trees",
+      "et_max_depth": 25,
+      "et_max_features": 0.918683018235,
+      "et_min_samples_leaf": 7,
+      "et_n_estimators": 333
+    },
+    "10": {
+      "model": "extra_trees",
+      "et_max_depth": 27,
+      "et_max_features": 0.7406552133075,
+      "et_min_samples_leaf": 1,
+      "et_n_estimators": 298
+    }
+  },
+  "config_origins": {
+    "1": "Acquisition Function Maximizer: Local Search",
+    "2": "Acquisition Function Maximizer: Local Search",
+    "3": "Acquisition Function Maximizer: Local Search",
+    "4": "Acquisition Function Maximizer: Local Search",
+    "5": "Acquisition Function Maximizer: Local Search",
+    "6": "Acquisition Function Maximizer: Local Search",
+    "7": "Acquisition Function Maximizer: Local Search",
+    "8": "Acquisition Function Maximizer: Local Search",
+    "9": "Acquisition Function Maximizer: Local Search",
+    "10": "Acquisition Function Maximizer: Local Search"
+  }
+}

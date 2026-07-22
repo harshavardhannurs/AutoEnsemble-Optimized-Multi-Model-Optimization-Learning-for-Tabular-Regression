@@ -22,6 +22,7 @@ def run_cv(X_train, y_train, model_factory, n_splits=5):
     r2_scores = np.zeros(n_splits)
 
     for fold, (train_indices, validation_indices) in enumerate(kfold.split(X_train)):
+        print(f"CV Fold: {fold + 1}/{n_splits} started")
         X_train_fold = X_train.iloc[train_indices]
         X_validation_fold = X_train.iloc[validation_indices]
         y_train_fold = y_train.iloc[train_indices]

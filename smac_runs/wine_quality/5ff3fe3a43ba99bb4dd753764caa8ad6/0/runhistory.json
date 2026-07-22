@@ -1,7 +1,7 @@
 {
   "stats": {
-    "submitted": 5,
-    "finished": 5,
+    "submitted": 20,
+    "finished": 20,
     "running": 0
   },
   "data": [
@@ -69,6 +69,213 @@
       "starttime": 1784641623.444204,
       "endtime": 1784641649.173905,
       "additional_info": {}
+    },
+    {
+      "config_id": 6,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.6039645612239838,
+      "time": 1071.4555740356445,
+      "cpu_time": 811.8806129999998,
+      "status": 1,
+      "starttime": 1784641649.611547,
+      "endtime": 1784642721.069515,
+      "additional_info": {}
+    },
+    {
+      "config_id": 7,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.6335053682327271,
+      "time": 481.74562191963196,
+      "cpu_time": 320.5085220000001,
+      "status": 1,
+      "starttime": 1784642721.077615,
+      "endtime": 1784643202.826096,
+      "additional_info": {}
+    },
+    {
+      "config_id": 8,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.6158971607685089,
+      "time": 86.81571412086487,
+      "cpu_time": 74.09779499999968,
+      "status": 1,
+      "starttime": 1784643202.831817,
+      "endtime": 1784643289.650501,
+      "additional_info": {}
+    },
+    {
+      "config_id": 9,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.6109149515628814,
+      "time": 1270.079490184784,
+      "cpu_time": 772.0382039999995,
+      "status": 1,
+      "starttime": 1784643289.654665,
+      "endtime": 1784644559.7372742,
+      "additional_info": {}
+    },
+    {
+      "config_id": 10,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.5989499449729919,
+      "time": 579.0900883674622,
+      "cpu_time": 405.80431099999987,
+      "status": 1,
+      "starttime": 1784644559.743489,
+      "endtime": 1784645138.8361962,
+      "additional_info": {}
+    },
+    {
+      "config_id": 11,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.6098271429538726,
+      "time": 1209.1421530246735,
+      "cpu_time": 969.4446239999997,
+      "status": 1,
+      "starttime": 1784645138.841728,
+      "endtime": 1784646347.986172,
+      "additional_info": {}
+    },
+    {
+      "config_id": 12,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.6070679485797882,
+      "time": 474.14872908592224,
+      "cpu_time": 289.26287500000035,
+      "status": 1,
+      "starttime": 1784646347.996695,
+      "endtime": 1784646822.1495838,
+      "additional_info": {}
+    },
+    {
+      "config_id": 13,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.6155176818370819,
+      "time": 2203.450604200363,
+      "cpu_time": 1666.3645960000003,
+      "status": 1,
+      "starttime": 1784646822.156106,
+      "endtime": 1784649025.609984,
+      "additional_info": {}
+    },
+    {
+      "config_id": 14,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.6053828418254852,
+      "time": 284.8651399612427,
+      "cpu_time": 219.27427100000023,
+      "status": 1,
+      "starttime": 1784649026.0616078,
+      "endtime": 1784649310.9288168,
+      "additional_info": {}
+    },
+    {
+      "config_id": 15,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.6084116280078888,
+      "time": 350.8159909248352,
+      "cpu_time": 277.42593599999964,
+      "status": 1,
+      "starttime": 1784649310.933795,
+      "endtime": 1784649661.752146,
+      "additional_info": {}
+    },
+    {
+      "config_id": 16,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.6038585305213928,
+      "time": 511.74301290512085,
+      "cpu_time": 425.880224999999,
+      "status": 1,
+      "starttime": 1784649661.758223,
+      "endtime": 1784650173.503338,
+      "additional_info": {}
+    },
+    {
+      "config_id": 17,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": Infinity,
+      "time": 0.0,
+      "cpu_time": 8745.436525,
+      "status": 2,
+      "starttime": 1784650173.508789,
+      "endtime": 1784650191.1349602,
+      "additional_info": {
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/smac/runner/target_function_runner.py\", line 196, in run\n    rval = self(config_copy, target_function, kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/smac/runner/target_function_runner.py\", line 270, in __call__\n    return algorithm(config, **algorithm_kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/smac_utils.py\", line 236, in objective\n    if model not in best_by_model or result[\"mean_r2\"] > best_by_model[model][\"mean_r2\"]:\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/smac_utils.py\", line 123, in run_configuration\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/models/ffn.py\", line 225, in ffn_pipelined_model\n    train_loss_across_folds, val_loss_across_folds, r2_score_across_folds = run_cv(\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/models/ffn.py\", line 187, in run_cv\n    print(f'Epoch {epochi + 1}/{num_epochs} -> Train Loss: {train_loss_across_epochs[epochi]:.4f} || Validation Loss: {val_loss_across_epochs[epochi]:.4f}')\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/smac_utils.py\", line 53, in write\n    line, self.buffer = self.buffer.split(\"\\n\", 1)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/main.py\", line 39, in update_log\n    fold_display = fold_column.empty()\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/metrics_util.py\", line 443, in wrapped_func\n    result = non_optional_func(*args, **kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/elements/code.py\", line 149, in code\n    return self.dg._enqueue(\"code\", code_proto, layout_config=layout_config)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/delta_generator.py\", line 502, in _enqueue\n    _enqueue_message(msg)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py\", line 297, in enqueue_message\n    ctx.enqueue(msg)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py\", line 205, in enqueue\n    self._enqueue(msg_to_send)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py\", line 413, in _enqueue_forward_msg\n    self.on_event.send(\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/blinker/base.py\", line 249, in send\n    result = receiver(sender, **kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/app_session.py\", line 519, in _on_scriptrunner_event\n    self._event_loop.call_soon_threadsafe(\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/base_events.py\", line 791, in call_soon_threadsafe\n    self._check_closed()\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/base_events.py\", line 510, in _check_closed\n    raise RuntimeError('Event loop is closed')\nRuntimeError: Event loop is closed\n",
+        "error": "RuntimeError('Event loop is closed')"
+      }
+    },
+    {
+      "config_id": 18,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": Infinity,
+      "time": 0.0,
+      "cpu_time": 8759.690476,
+      "status": 2,
+      "starttime": 1784650191.139415,
+      "endtime": 1784650191.142134,
+      "additional_info": {
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/smac/runner/target_function_runner.py\", line 196, in run\n    rval = self(config_copy, target_function, kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/smac/runner/target_function_runner.py\", line 270, in __call__\n    return algorithm(config, **algorithm_kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/smac_utils.py\", line 233, in objective\n    best_by_model = {}\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/smac_utils.py\", line 225, in report\n    \"xgboost\": \"xgb_\",\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/main.py\", line 39, in update_log\n    fold_display = fold_column.empty()\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/metrics_util.py\", line 443, in wrapped_func\n    result = non_optional_func(*args, **kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/elements/code.py\", line 149, in code\n    return self.dg._enqueue(\"code\", code_proto, layout_config=layout_config)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/delta_generator.py\", line 502, in _enqueue\n    _enqueue_message(msg)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py\", line 297, in enqueue_message\n    ctx.enqueue(msg)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py\", line 205, in enqueue\n    self._enqueue(msg_to_send)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py\", line 413, in _enqueue_forward_msg\n    self.on_event.send(\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/blinker/base.py\", line 249, in send\n    result = receiver(sender, **kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/app_session.py\", line 519, in _on_scriptrunner_event\n    self._event_loop.call_soon_threadsafe(\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/base_events.py\", line 791, in call_soon_threadsafe\n    self._check_closed()\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/base_events.py\", line 510, in _check_closed\n    raise RuntimeError('Event loop is closed')\nRuntimeError: Event loop is closed\n",
+        "error": "RuntimeError('Event loop is closed')"
+      }
+    },
+    {
+      "config_id": 19,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": Infinity,
+      "time": 0.0,
+      "cpu_time": 8759.697943,
+      "status": 2,
+      "starttime": 1784650191.14708,
+      "endtime": 1784650191.149633,
+      "additional_info": {
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/smac/runner/target_function_runner.py\", line 196, in run\n    rval = self(config_copy, target_function, kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/smac/runner/target_function_runner.py\", line 270, in __call__\n    return algorithm(config, **algorithm_kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/smac_utils.py\", line 233, in objective\n    best_by_model = {}\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/smac_utils.py\", line 225, in report\n    \"xgboost\": \"xgb_\",\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/main.py\", line 39, in update_log\n    fold_display = fold_column.empty()\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/metrics_util.py\", line 443, in wrapped_func\n    result = non_optional_func(*args, **kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/elements/code.py\", line 149, in code\n    return self.dg._enqueue(\"code\", code_proto, layout_config=layout_config)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/delta_generator.py\", line 502, in _enqueue\n    _enqueue_message(msg)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py\", line 297, in enqueue_message\n    ctx.enqueue(msg)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py\", line 205, in enqueue\n    self._enqueue(msg_to_send)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py\", line 413, in _enqueue_forward_msg\n    self.on_event.send(\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/blinker/base.py\", line 249, in send\n    result = receiver(sender, **kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/app_session.py\", line 519, in _on_scriptrunner_event\n    self._event_loop.call_soon_threadsafe(\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/base_events.py\", line 791, in call_soon_threadsafe\n    self._check_closed()\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/base_events.py\", line 510, in _check_closed\n    raise RuntimeError('Event loop is closed')\nRuntimeError: Event loop is closed\n",
+        "error": "RuntimeError('Event loop is closed')"
+      }
+    },
+    {
+      "config_id": 20,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": Infinity,
+      "time": 0.0,
+      "cpu_time": 8759.705412,
+      "status": 2,
+      "starttime": 1784650191.154767,
+      "endtime": 1784650191.1571488,
+      "additional_info": {
+        "traceback": "Traceback (most recent call last):\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/smac/runner/target_function_runner.py\", line 196, in run\n    rval = self(config_copy, target_function, kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/smac/runner/target_function_runner.py\", line 270, in __call__\n    return algorithm(config, **algorithm_kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/smac_utils.py\", line 233, in objective\n    best_by_model = {}\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/smac_utils.py\", line 225, in report\n    \"xgboost\": \"xgb_\",\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/main.py\", line 39, in update_log\n    fold_display = fold_column.empty()\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/metrics_util.py\", line 443, in wrapped_func\n    result = non_optional_func(*args, **kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/elements/code.py\", line 149, in code\n    return self.dg._enqueue(\"code\", code_proto, layout_config=layout_config)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/delta_generator.py\", line 502, in _enqueue\n    _enqueue_message(msg)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py\", line 297, in enqueue_message\n    ctx.enqueue(msg)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner_utils/script_run_context.py\", line 205, in enqueue\n    self._enqueue(msg_to_send)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py\", line 413, in _enqueue_forward_msg\n    self.on_event.send(\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/blinker/base.py\", line 249, in send\n    result = receiver(sender, **kwargs)\n  File \"/Users/ayushmangukia/Downloads/AutoML/automl_/.venv/lib/python3.9/site-packages/streamlit/runtime/app_session.py\", line 519, in _on_scriptrunner_event\n    self._event_loop.call_soon_threadsafe(\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/base_events.py\", line 791, in call_soon_threadsafe\n    self._check_closed()\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/base_events.py\", line 510, in _check_closed\n    raise RuntimeError('Event loop is closed')\nRuntimeError: Event loop is closed\n",
+        "error": "RuntimeError('Event loop is closed')"
+      }
     }
   ],
   "configs": {
@@ -110,13 +317,174 @@
       "hgb_max_iter": 100,
       "hgb_max_leaf_nodes": 31,
       "hgb_min_samples_leaf": 20
+    },
+    "6": {
+      "model": "ffn",
+      "ffn_batch_norm": true,
+      "ffn_batch_size": 69,
+      "ffn_learning_rate": 1.31089934e-05,
+      "ffn_no_of_layers": 1,
+      "ffn_no_of_units": 506,
+      "ffn_num_epochs": 797,
+      "ffn_weight_decay": 1.6813029e-06
+    },
+    "7": {
+      "model": "ffn",
+      "ffn_batch_norm": true,
+      "ffn_batch_size": 149,
+      "ffn_learning_rate": 2.38152641e-05,
+      "ffn_no_of_layers": 3,
+      "ffn_no_of_units": 99,
+      "ffn_num_epochs": 457,
+      "ffn_weight_decay": 0.0003007886088
+    },
+    "8": {
+      "model": "ffn",
+      "ffn_batch_norm": true,
+      "ffn_batch_size": 163,
+      "ffn_learning_rate": 0.0001696312605,
+      "ffn_no_of_layers": 2,
+      "ffn_no_of_units": 316,
+      "ffn_num_epochs": 128,
+      "ffn_weight_decay": 3.6014412e-06
+    },
+    "9": {
+      "model": "ffn",
+      "ffn_batch_norm": true,
+      "ffn_batch_size": 33,
+      "ffn_learning_rate": 4.90812613e-05,
+      "ffn_no_of_layers": 1,
+      "ffn_no_of_units": 263,
+      "ffn_num_epochs": 411,
+      "ffn_weight_decay": 0.0001282019009
+    },
+    "10": {
+      "model": "ffn",
+      "ffn_batch_norm": true,
+      "ffn_batch_size": 191,
+      "ffn_learning_rate": 0.0001858338981,
+      "ffn_no_of_layers": 1,
+      "ffn_no_of_units": 302,
+      "ffn_num_epochs": 825,
+      "ffn_weight_decay": 0.000125039765
+    },
+    "11": {
+      "model": "ffn",
+      "ffn_batch_norm": false,
+      "ffn_batch_size": 71,
+      "ffn_learning_rate": 1.60218305e-05,
+      "ffn_no_of_layers": 4,
+      "ffn_no_of_units": 379,
+      "ffn_num_epochs": 940,
+      "ffn_weight_decay": 6.67295955e-05
+    },
+    "12": {
+      "model": "ffn",
+      "ffn_batch_norm": false,
+      "ffn_batch_size": 144,
+      "ffn_learning_rate": 0.0003746516289,
+      "ffn_no_of_layers": 1,
+      "ffn_no_of_units": 105,
+      "ffn_num_epochs": 859,
+      "ffn_weight_decay": 1.77632033e-05
+    },
+    "13": {
+      "model": "ffn",
+      "ffn_batch_norm": true,
+      "ffn_batch_size": 38,
+      "ffn_learning_rate": 2.22754756e-05,
+      "ffn_no_of_layers": 2,
+      "ffn_no_of_units": 242,
+      "ffn_num_epochs": 822,
+      "ffn_weight_decay": 3.28569995e-05
+    },
+    "14": {
+      "model": "ffn",
+      "ffn_batch_norm": false,
+      "ffn_batch_size": 227,
+      "ffn_learning_rate": 0.0029104258392,
+      "ffn_no_of_layers": 1,
+      "ffn_no_of_units": 343,
+      "ffn_num_epochs": 946,
+      "ffn_weight_decay": 0.0003236203097
+    },
+    "15": {
+      "model": "ffn",
+      "ffn_batch_norm": false,
+      "ffn_batch_size": 249,
+      "ffn_learning_rate": 0.0013785256123,
+      "ffn_no_of_layers": 4,
+      "ffn_no_of_units": 368,
+      "ffn_num_epochs": 870,
+      "ffn_weight_decay": 0.0002239008105
+    },
+    "16": {
+      "model": "ffn",
+      "ffn_batch_norm": false,
+      "ffn_batch_size": 207,
+      "ffn_learning_rate": 1.03860962e-05,
+      "ffn_no_of_layers": 4,
+      "ffn_no_of_units": 483,
+      "ffn_num_epochs": 995,
+      "ffn_weight_decay": 0.0005800063489
+    },
+    "17": {
+      "model": "ffn",
+      "ffn_batch_norm": false,
+      "ffn_batch_size": 184,
+      "ffn_learning_rate": 1.15622957e-05,
+      "ffn_no_of_layers": 4,
+      "ffn_no_of_units": 370,
+      "ffn_num_epochs": 998,
+      "ffn_weight_decay": 0.0006278090426
+    },
+    "18": {
+      "model": "ffn",
+      "ffn_batch_norm": false,
+      "ffn_batch_size": 255,
+      "ffn_learning_rate": 0.000104147573,
+      "ffn_no_of_layers": 1,
+      "ffn_no_of_units": 465,
+      "ffn_num_epochs": 933,
+      "ffn_weight_decay": 0.0007110592854
+    },
+    "19": {
+      "model": "xgboost",
+      "xgb_colsample_bytree": 0.5088201992659,
+      "xgb_learning_rate": 0.2344796806273,
+      "xgb_max_depth": 6,
+      "xgb_n_estimators": 606,
+      "xgb_subsample": 0.5014757566837
+    },
+    "20": {
+      "model": "xgboost",
+      "xgb_colsample_bytree": 0.6076113196492,
+      "xgb_learning_rate": 0.0423849360901,
+      "xgb_max_depth": 6,
+      "xgb_n_estimators": 835,
+      "xgb_subsample": 0.7399766061396
     }
   },
   "config_origins": {
-    "1": "Initial design",
-    "2": "Initial design",
-    "3": "Initial design",
-    "4": "Initial design",
-    "5": "Initial design"
+    "1": "Acquisition Function Maximizer: Local Search",
+    "2": "Acquisition Function Maximizer: Local Search",
+    "3": "Acquisition Function Maximizer: Local Search",
+    "4": "Acquisition Function Maximizer: Local Search",
+    "5": "Acquisition Function Maximizer: Local Search",
+    "6": "Acquisition Function Maximizer: Local Search",
+    "7": "Acquisition Function Maximizer: Local Search",
+    "8": "Acquisition Function Maximizer: Local Search",
+    "9": "Acquisition Function Maximizer: Local Search",
+    "10": "Acquisition Function Maximizer: Local Search",
+    "11": "Acquisition Function Maximizer: Local Search",
+    "12": "Acquisition Function Maximizer: Local Search",
+    "13": "Acquisition Function Maximizer: Local Search",
+    "14": "Acquisition Function Maximizer: Local Search",
+    "15": "Acquisition Function Maximizer: Local Search",
+    "16": "Acquisition Function Maximizer: Local Search",
+    "17": "Acquisition Function Maximizer: Local Search",
+    "18": "Acquisition Function Maximizer: Local Search",
+    "19": "Random Search",
+    "20": "Random Search"
   }
 }
