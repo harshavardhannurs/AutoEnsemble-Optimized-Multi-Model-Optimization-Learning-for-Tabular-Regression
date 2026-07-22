@@ -241,4 +241,4 @@ if __name__ == '__main__':
 
     mu.plot_losses(train_loss_across_folds, val_loss_across_folds)
 
-    print("The current hyperparameter configuration yields an average R2 Score of ", mu.average_test_loss(r2_score_across_folds))
+    print("The current hyperparameter configuration yields an average R2 Score of ", mu.average(r2_score_across_folds))

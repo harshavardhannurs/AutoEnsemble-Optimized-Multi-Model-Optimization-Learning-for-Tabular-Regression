@@ -130,7 +130,7 @@ def get_dataloader(X, y, batch_size=64, is_test=False):
 
     return ldr
 
-def data_transformer(X, y, categorical_strategy='most_frequent', non_categorical_strategy='mean', is_scaled=True):
+def data_transformer(X, y, categorical_strategy='most_frequent', non_categorical_strategy='mean', scale_numeric=True, impute_missing=True):
 
     """
     This function creates a transformer object that scales numerical features and encodes categorical features along with imputing missing values.
@@ -141,18 +141,24 @@ def data_transformer(X, y, categorical_strategy='most_frequent', non_categorical
 
     non_categorical_columns = X.select_dtypes(exclude=['object', 'category']).columns.to_list()
 
-    categorical_pipeline = Pipeline([
-        ('imputer', SimpleImputer(strategy=categorical_strategy)),
-        ('encoder', OneHotEncoder(handle_unknown='ignore'))
-    ])
+    cat_steps = []
 
-    steps = [
-        ('imputer', SimpleImputer(strategy=non_categorical_strategy))
-    ]
-    if is_scaled:
-        steps.append(('scaler', StandardScaler()))
+    if impute_missing:
+        cat_steps.append(('imputer', SimpleImputer(strategy=categorical_strategy)))
+    cat_steps.append(('encoder', OneHotEncoder(handle_unknown='ignore')))
+    categorical_pipeline = Pipeline(cat_steps)
 
-    non_categorical_pipeline = Pipeline(steps)
+    non_cat_steps = []
+    if impute_missing:
+        non_cat_steps.append(('imputer', SimpleImputer(strategy=non_categorical_strategy)))
+
+    if scale_numeric:
+        non_cat_steps.append(('scaler', StandardScaler()))
+    non_categorical_pipeline = (
+        Pipeline(non_cat_steps)
+        if non_cat_steps
+        else "passthrough"
+    )
 
     transformer_X = ColumnTransformer([
         ('transform_categorical', categorical_pipeline, categorical_columns),

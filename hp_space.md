@@ -13,6 +13,7 @@
     - max_depth: 3-10
     - subsample: 0.5-1
     - colsample_bytree: 0.5-1
+    - reg_lambda: 1e-8 - 100 (log scale)
 - Random Forest
     - n_estimators: 100-500
     - max_depth: 5-30

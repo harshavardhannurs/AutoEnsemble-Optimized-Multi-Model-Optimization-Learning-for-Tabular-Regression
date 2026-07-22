@@ -48,7 +48,7 @@ def get_predictions(y, y_hat, transformer_y):
 
     return y.flatten(), y_hat.flatten()
 
-def average_test_loss(X):
+def average(X):
 
     return np.mean(X)
 

@@ -50,7 +50,7 @@ def run_cv(
         y_train_fold = y_train.iloc[train_indices]
         y_val_fold = y_train.iloc[val_indices]
 
-        transformer_X, transformer_y = du.data_transformer(X_train_fold, y_train_fold, is_scaled=False)
+        transformer_X, _ = du.data_transformer(X_train_fold, y_train_fold, scale_numeric=False, impute_missing=False)
 
         X_train_fold = transformer_X.fit_transform(X_train_fold)
         X_val_fold = transformer_X.transform(X_val_fold)
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     )
 
     print("The current hyperparameter configuration yields an average R2 Score of ",
-          mu.average_test_loss(r2_score_across_folds))
+          mu.average(r2_score_across_folds))
 
 
 
