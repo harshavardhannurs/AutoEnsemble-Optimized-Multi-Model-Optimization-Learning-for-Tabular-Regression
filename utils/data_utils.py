@@ -81,6 +81,13 @@ def split_train_test(X, y, test_size=0.2):
 
     return X_train, X_test, y_train, y_test
 
+def to_numpy(x):
+    if hasattr(x, "to_numpy"):
+        x = x.to_numpy()
+    elif hasattr(x, "numpy"):
+        x = x.detach().cpu().numpy()
+    return x
+
 def to_dense(x):
     return x.toarray() if hasattr(x, "toarray") else x
 
@@ -123,7 +130,7 @@ def get_dataloader(X, y, batch_size=64, is_test=False):
 
     return ldr
 
-def data_transformer(X, y, categorical_strategy='most_frequent', non_categorical_strategy='mean'):
+def data_transformer(X, y, categorical_strategy='most_frequent', non_categorical_strategy='mean', is_scaled=True):
 
     """
     This function creates a transformer object that scales numerical features and encodes categorical features along with imputing missing values.
@@ -139,10 +146,13 @@ def data_transformer(X, y, categorical_strategy='most_frequent', non_categorical
         ('encoder', OneHotEncoder(handle_unknown='ignore'))
     ])
 
-    non_categorical_pipeline = Pipeline([
-        ('imputer', SimpleImputer(strategy=non_categorical_strategy)),
-        ('scaler', StandardScaler())
-    ])
+    steps = [
+        ('imputer', SimpleImputer(strategy=non_categorical_strategy))
+    ]
+    if is_scaled:
+        steps.append(('scaler', StandardScaler()))
+
+    non_categorical_pipeline = Pipeline(steps)
 
     transformer_X = ColumnTransformer([
         ('transform_categorical', categorical_pipeline, categorical_columns),

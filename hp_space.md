@@ -3,7 +3,7 @@
 ## Models
 - XGBoost – XGBRegressor
 - Random Forest – RandomForestRegressor
-- KNN – KNeighborsRegressor
+- TabPFN - TabPFNRegressor
 - Feed Forward Neural Network
 
 ## Hyperparameter Space
@@ -18,10 +18,7 @@
     - max_depth: 5-30
     - min_samples_leaf: 1-10
     - max_features: 0.5-1
-- KNN
-    - n_neighbors: 3-50
-    - weights: uniform/distance
-    - p: 1/2
+- TabPFN
 - Feed Forward Neural Network
     - no_of_layers: 1-4
     - no_of_units: 32 - 512

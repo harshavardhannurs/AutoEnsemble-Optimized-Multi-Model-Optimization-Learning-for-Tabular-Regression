@@ -36,6 +36,13 @@ def plot_losses(train_loss_across_folds, val_loss_across_folds):
 
 def get_predictions(y, y_hat, transformer_y):
 
+    if y_hat.ndim == 1:
+        y_hat = y_hat.reshape(-1, 1)
+    if y.ndim == 1:
+        y = y.reshape(-1, 1)
+
+    # inverse_transformers_ expects the arrays to be 2D
+
     y = transformer_y.named_transformers_['scaler'].inverse_transform(y)
     y_hat = transformer_y.named_transformers_['scaler'].inverse_transform(y_hat)
 

@@ -90,6 +90,8 @@ def run_cv(
     val_loss_across_folds = np.zeros((n_splits, num_epochs))
     r2_score_across_folds = np.zeros((n_splits,))
 
+    no_of_layers, no_of_units, learning_rate, weight_decay, batch_norm = model_hps
+
     for i, (train_indices, val_indices) in enumerate(kf.split(X_train)):
 
         X_train_fold = X_train.iloc[train_indices]
@@ -113,7 +115,6 @@ def run_cv(
         y_val_fold = du.to_dense(y_val_fold)
 
         no_of_feats = X_train_fold.shape[1]
-        no_of_layers, no_of_units, learning_rate, weight_decay, batch_norm = model_hps
 
         model, optimizer, loss_function = setup_model(
             no_of_feats=no_of_feats,
