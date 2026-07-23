@@ -130,13 +130,16 @@ def get_dataloader(X, y, batch_size=64, is_test=False):
 
     return ldr
 
-def data_transformer(X, y, categorical_strategy='most_frequent', non_categorical_strategy='mean', scale_numeric=True, impute_missing=True):
+def data_transformer(X, y, categorical_strategy='most_frequent', non_categorical_strategy='mean', scale_numeric=True, impute_missing=True, encode_categorical=True):
 
     """
-    This function creates a transformer object that scales numerical features and encodes categorical features along with imputing missing values.
+    Creates preprocessing transformers for the features and target.
+
+    Categorical features can be optionally imputed and one-hot encoded.
+    Numerical features can be optionally imputed and standardized.
     """
 
-    categorical_columns = X.select_dtypes(include=['object', 'category']).columns.to_list()
+    categorical_columns = X.select_dtypes(include=['object', 'category', 'string']).columns.to_list()
     # select_dtypes return a subset of the DataFrame’s columns based on the column dtypes.
 
     non_categorical_columns = X.select_dtypes(exclude=['object', 'category']).columns.to_list()
@@ -145,13 +148,17 @@ def data_transformer(X, y, categorical_strategy='most_frequent', non_categorical
 
     if impute_missing:
         cat_steps.append(('imputer', SimpleImputer(strategy=categorical_strategy)))
-    cat_steps.append(('encoder', OneHotEncoder(handle_unknown='ignore')))
-    categorical_pipeline = Pipeline(cat_steps)
+    if encode_categorical:
+        cat_steps.append(('encoder', OneHotEncoder(handle_unknown='ignore', sparse_output=False)))
+    categorical_pipeline = (
+        Pipeline(cat_steps)
+        if cat_steps
+        else "passthrough"
+    )
 
     non_cat_steps = []
     if impute_missing:
         non_cat_steps.append(('imputer', SimpleImputer(strategy=non_categorical_strategy)))
-
     if scale_numeric:
         non_cat_steps.append(('scaler', StandardScaler()))
     non_categorical_pipeline = (

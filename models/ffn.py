@@ -108,12 +108,6 @@ def run_cv(
         y_train_fold = transformer_y.fit_transform(y_train_fold)
         y_val_fold = transformer_y.transform(y_val_fold)
 
-        # Convert sparse matrices to dense arrays if needed
-        X_train_fold = du.to_dense(X_train_fold)
-        X_val_fold = du.to_dense(X_val_fold)
-        y_train_fold = du.to_dense(y_train_fold)
-        y_val_fold = du.to_dense(y_val_fold)
-
         no_of_feats = X_train_fold.shape[1]
 
         model, optimizer, loss_function = setup_model(
@@ -210,7 +204,7 @@ def pipelined_model(
         weight_decay,
         batch_norm,
         num_epochs,
-        n_splits
+        n_splits=10
 ):
 
     X_train, X_test, y_train, y_test  = prepare_data(dataset_name)
@@ -241,4 +235,4 @@ if __name__ == '__main__':
 
     mu.plot_losses(train_loss_across_folds, val_loss_across_folds)
 
-    print("The current hyperparameter configuration yields an average R2 Score of ", mu.average(r2_score_across_folds))
+    print("The current hyperparameter configuration for FFN yields an average R2 Score of", mu.average(r2_score_across_folds))

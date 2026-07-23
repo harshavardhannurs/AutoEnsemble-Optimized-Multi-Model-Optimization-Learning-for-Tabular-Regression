@@ -61,12 +61,8 @@ def run_cv(
         X_train_fold = transformer_X.fit_transform(X_train_fold)
         X_val_fold = transformer_X.transform(X_val_fold)
 
-        # No need to transform the target as random forests split features like: xj < threshold. Scaling only adds complexity
-
-        X_train_fold = du.to_dense(X_train_fold)
-        X_val_fold = du.to_dense(X_val_fold)
-        y_train_fold = du.to_dense(y_train_fold).values.ravel()
-        y_val_fold = du.to_dense(y_val_fold).values.ravel()
+        y_train_fold = y_train_fold.values.ravel()
+        y_val_fold = y_val_fold.values.ravel()
 
         model = setup_model(
             n_estimators=n_estimators,
@@ -120,7 +116,7 @@ if __name__ == '__main__':
         reg_lambda=0.001,
     )
 
-    print("The current hyperparameter configuration yields an average R2 Score of ",
+    print("The current hyperparameter configuration for XGB yields an average R2 Score of",
           mu.average(r2_score_across_folds))
 
 

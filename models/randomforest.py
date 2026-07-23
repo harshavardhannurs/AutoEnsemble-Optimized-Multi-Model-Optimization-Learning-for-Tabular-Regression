@@ -57,10 +57,8 @@ def run_cv(
 
         # No need to transform the target as random forests split features like: xj < threshold. Scaling only adds complexity
 
-        X_train_fold = du.to_dense(X_train_fold)
-        X_val_fold = du.to_dense(X_val_fold)
-        y_train_fold = du.to_dense(y_train_fold).values.ravel()
-        y_val_fold = du.to_dense(y_val_fold).values.ravel()
+        y_train_fold = y_train_fold.values.ravel()
+        y_val_fold = y_val_fold.values.ravel()
 
         model = setup_model(
             n_estimators=n_estimators,
@@ -84,7 +82,7 @@ def pipelined_model(
         max_depth,
         min_samples_leaf,
         max_features,
-        n_splits
+        n_splits=10
 ):
     X_train, X_test, y_train, y_test = prepare_data(dataset_name)
 
@@ -109,7 +107,7 @@ if __name__ == '__main__':
         n_splits=10
     )
 
-    print("The current hyperparameter configuration yields an average R2 Score of ",
+    print("The current hyperparameter configuration for Random Forest yields an average R2 Score of",
           mu.average(r2_score_across_folds))
 
 
