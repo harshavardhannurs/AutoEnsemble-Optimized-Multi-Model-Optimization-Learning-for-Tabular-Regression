@@ -30,13 +30,18 @@ def prepare_data(dataset_name):
 
     return X_train, X_test, y_train, y_test
 
-def setup_model():
-    model = TabPFNRegressor()
+def setup_model(
+        n_estimators
+):
+    model = TabPFNRegressor(
+        n_estimators=n_estimators
+    )
     return model
 
 def run_cv(
         X_train,
         y_train,
+        model_hps,
         n_splits=10
 ):
 
@@ -62,7 +67,9 @@ def run_cv(
         y_train_fold = du.to_dense(y_train_fold).values.ravel()
         y_val_fold = du.to_dense(y_val_fold).values.ravel()
 
-        model = setup_model()
+        n_estimators = model_hps
+
+        model = setup_model(n_estimators=n_estimators)
 
         model.fit(X_train_fold, y_train_fold)
 
@@ -75,6 +82,7 @@ def run_cv(
 
 def pipelined_model(
         dataset_name,
+        n_estimators=10,
         n_splits=10
 ):
 
@@ -83,6 +91,7 @@ def pipelined_model(
     r2_score_across_folds = run_cv(
         X_train=X_train,
         y_train=y_train,
+        model_hps=n_estimators,
         n_splits=n_splits
     )
 
@@ -92,6 +101,7 @@ if __name__=='__main__':
 
     r2_score_across_folds = pipelined_model(
         dataset_name='wine_quality',
+        n_estimators=20,
         n_splits=10
     )
 
