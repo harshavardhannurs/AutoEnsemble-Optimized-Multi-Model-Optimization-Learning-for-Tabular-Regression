@@ -15,7 +15,7 @@ import utils.model_utils as mu
 
 MODELS = {'ffn': 'Feed Forward Neural Network', 'xgb': 'XGBoost', 'randomforest': 'Random Forest', 'pfn': 'TabPFN'}
 
-DATASET_DICT = {1: 'bike_sharing_demand', 2: 'brazilian_houses', 3: 'super_conductivity', 4: 'wine_quality', 5: 'yprop_4_1'}
+DATASET_DICT = {1: 'bike_sharing_demand', 2: 'brazilian_houses', 3: 'superconductivity', 4: 'wine_quality', 5: 'yprop_4_1'}
 
 # Hyperparameters
 
