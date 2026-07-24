@@ -1,6 +1,3 @@
-import os
-from dotenv import load_dotenv
-
 import numpy as np
 
 from tabpfn import TabPFNRegressor
@@ -10,31 +7,21 @@ from sklearn.model_selection import KFold
 import utils.data_utils as du
 import utils.model_utils as mu
 
-load_dotenv()
-
-API_TOKEN = os.getenv("API_TOKEN")
-
-if API_TOKEN is None:
-    raise EnvironmentError(
-        "API_TOKEN not found. Please create a .env file with:\n"
-        "API_TOKEN=<your_tabpfn_api_key>"
-    )
-
-os.environ["TABPFN_TOKEN"] = API_TOKEN
-
-def prepare_data(dataset_name):
+def prepare_data(dataset_name, seed=42):
 
     data = du.get_combined_dataset(dataset_name)
     X, y = du.split_features_and_target(data)
-    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2)
+    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2, seed=seed)
 
     return X_train, X_test, y_train, y_test
 
 def setup_model(
-        n_estimators
+        n_estimators,
+        seed=42
 ):
     model = TabPFNRegressor(
-        n_estimators=n_estimators
+        n_estimators=n_estimators,
+        random_state=seed
     )
     return model
 
@@ -42,10 +29,11 @@ def run_cv(
         X_train,
         y_train,
         model_hps,
-        n_splits=10
+        n_splits=10,
+        seed=42
 ):
 
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
 
     r2_score_across_folds = np.zeros((n_splits,))
 
@@ -69,7 +57,7 @@ def run_cv(
 
         n_estimators = model_hps
 
-        model = setup_model(n_estimators=n_estimators)
+        model = setup_model(n_estimators=n_estimators, seed=seed)
 
         model.fit(X_train_fold, y_train_fold)
 
@@ -83,16 +71,18 @@ def run_cv(
 def pipelined_model(
         dataset_name,
         n_estimators=10,
-        n_splits=10
+        n_splits=10,
+        seed=42
 ):
 
-    X_train, X_test, y_train, y_test = prepare_data(dataset_name)
+    X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
 
     r2_score_across_folds = run_cv(
         X_train=X_train,
         y_train=y_train,
         model_hps=n_estimators,
-        n_splits=n_splits
+        n_splits=n_splits,
+        seed=seed
     )
 
     return r2_score_across_folds
@@ -102,7 +92,8 @@ if __name__=='__main__':
     r2_score_across_folds = pipelined_model(
         dataset_name='wine_quality',
         n_estimators=20,
-        n_splits=10
+        n_splits=10,
+        seed=0
     )
 
     print("The current hyperparameter configuration for TabPFN yields an average R2 Score of ",

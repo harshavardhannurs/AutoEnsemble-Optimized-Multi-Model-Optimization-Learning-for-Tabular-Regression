@@ -6,11 +6,11 @@ from sklearn.ensemble import RandomForestRegressor
 import utils.data_utils as du
 import utils.model_utils as mu
 
-def prepare_data(dataset_name):
+def prepare_data(dataset_name, seed=42):
 
     data = du.get_combined_dataset(dataset_name)
     X, y = du.split_features_and_target(data)
-    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2)
+    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2, seed=seed)
 
     return X_train, X_test, y_train, y_test
 
@@ -18,7 +18,8 @@ def setup_model(
         n_estimators,
         max_depth,
         min_samples_leaf,
-        max_features
+        max_features,
+        seed=42
 ):
     rfr = RandomForestRegressor(
         n_estimators=n_estimators,
@@ -26,7 +27,7 @@ def setup_model(
         min_samples_leaf=min_samples_leaf,
         max_features=max_features,
         n_jobs=-1,
-        random_state=42
+        random_state=seed
     )
     return rfr
 
@@ -34,10 +35,11 @@ def run_cv(
         X_train,
         y_train,
         model_hps,
-        n_splits=10
+        n_splits=10,
+        seed=42
 ):
 
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
 
     r2_score_across_folds = np.zeros((n_splits,))
 
@@ -65,6 +67,7 @@ def run_cv(
             max_depth=max_depth,
             min_samples_leaf=min_samples_leaf,
             max_features=max_features,
+            seed=seed
         )
 
         model.fit(X_train_fold, y_train_fold)
@@ -82,9 +85,10 @@ def pipelined_model(
         max_depth,
         min_samples_leaf,
         max_features,
-        n_splits=10
+        n_splits=10,
+        seed=42
 ):
-    X_train, X_test, y_train, y_test = prepare_data(dataset_name)
+    X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
 
     model_hps = (n_estimators, max_depth, min_samples_leaf, max_features)
 
@@ -92,7 +96,8 @@ def pipelined_model(
         X_train=X_train,
         y_train=y_train,
         model_hps=model_hps,
-        n_splits=n_splits
+        n_splits=n_splits,
+        seed=seed
     )
 
     return r2_score_across_folds
@@ -104,14 +109,10 @@ if __name__ == '__main__':
         max_depth=None,
         min_samples_leaf=3,
         max_features=0.7,
-        n_splits=10
+        n_splits=10,
+        seed=42
     )
 
     print("The current hyperparameter configuration for Random Forest yields an average R2 Score of",
           mu.average(r2_score_across_folds))
-
-
-
-
-
 

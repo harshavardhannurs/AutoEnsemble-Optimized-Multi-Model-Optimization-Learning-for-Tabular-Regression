@@ -71,13 +71,13 @@ def split_features_and_target(df, target_column='target'):
 
     return X, y
 
-def split_train_test(X, y, test_size=0.2):
+def split_train_test(X, y, test_size=0.2, seed=42):
 
     """
     Split the data into train and test sets.
     """
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=True, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=True, random_state=seed)
 
     return X_train, X_test, y_train, y_test
 

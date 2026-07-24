@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 import torch
@@ -11,14 +13,28 @@ from sklearn.model_selection import KFold
 import utils.data_utils as du
 import utils.model_utils as mu
 
+def prepare_data(dataset_name, seed=42):
+
+    data = du.get_combined_dataset(dataset_name)
+    X, y = du.split_features_and_target(data)
+    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2, seed=seed)
+
+    return X_train, X_test, y_train, y_test
+
 def setup_model(
         no_of_feats,
         no_of_layers,
         no_of_units,
         learning_rate,
         weight_decay,
-        batch_norm=False
+        batch_norm=False,
+        seed=42
 ):
+
+    torch.manual_seed(seed)
+
+    if torch.backends.mps.is_available():
+        torch.mps.manual_seed(seed)
 
     class FFN(nn.Module):
         def __init__(self, n_feats, n_layers, n_units):
@@ -65,26 +81,19 @@ def setup_model(
 
     return model, optimizer, loss_function
 
-def prepare_data(dataset_name):
-
-    data = du.get_combined_dataset(dataset_name)
-    X, y = du.split_features_and_target(data)
-    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2)
-
-    return X_train, X_test, y_train, y_test
-
 def run_cv(
         X_train,
         y_train,
         model_hps,
         batch_size=64,
         num_epochs=500,
-        n_splits=10
+        n_splits=10,
+        seed=42
 ):
 
     device = mu.set_device()
 
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
 
     train_loss_across_folds = np.zeros((n_splits, num_epochs))
     val_loss_across_folds = np.zeros((n_splits, num_epochs))
@@ -116,7 +125,8 @@ def run_cv(
             no_of_units=no_of_units,
             learning_rate=learning_rate,
             weight_decay=weight_decay,
-            batch_norm=batch_norm
+            batch_norm=batch_norm,
+            seed=seed
         )
 
         best_loss = np.inf
@@ -129,8 +139,6 @@ def run_cv(
 
         train_loss_across_epochs = np.zeros((num_epochs,))
         val_loss_across_epochs = np.zeros((num_epochs,))
-
-        print(f'CV Fold: {i + 1}/{n_splits}')
 
         for epochi in range(num_epochs):
 
@@ -170,8 +178,7 @@ def run_cv(
                 best_loss = val_loss_across_epochs[epochi]
                 best_weights = deepcopy(model.state_dict())
 
-
-            print(f'Epoch {epochi + 1}/{num_epochs} -> Train Loss: {train_loss_across_epochs[epochi]:.4f} || Validation Loss: {val_loss_across_epochs[epochi]:.4f}')
+            print(f'[Worker {os.getpid()}] CV Split {i + 1}/{n_splits} >> Epoch {epochi + 1}/{num_epochs} - Train Loss: {train_loss_across_epochs[epochi]:.4f} || Validation Loss: {val_loss_across_epochs[epochi]:.4f}')
 
         model.load_state_dict(best_weights)
 
@@ -204,10 +211,11 @@ def pipelined_model(
         weight_decay,
         batch_norm,
         num_epochs,
-        n_splits=10
+        n_splits=10,
+        seed=42
 ):
 
-    X_train, X_test, y_train, y_test  = prepare_data(dataset_name)
+    X_train, X_test, y_train, y_test  = prepare_data(dataset_name, seed=seed)
 
     train_loss_across_folds, val_loss_across_folds, r2_score_across_folds = run_cv(
         X_train=X_train,
@@ -215,7 +223,8 @@ def pipelined_model(
         model_hps=(no_of_layers, no_of_units, learning_rate, weight_decay, batch_norm),
         batch_size=batch_size,
         num_epochs=num_epochs,
-        n_splits=n_splits
+        n_splits=n_splits,
+        seed=seed
     )
 
     return train_loss_across_folds, val_loss_across_folds, r2_score_across_folds
@@ -230,7 +239,8 @@ if __name__ == '__main__':
         weight_decay=0.001,
         batch_norm=False,
         num_epochs=50,
-        n_splits=5
+        n_splits=5,
+        seed=42
     )
 
     mu.plot_losses(train_loss_across_folds, val_loss_across_folds)
