@@ -77,7 +77,11 @@ def run_cv(
 
         r2_score_across_folds[i] = mu.get_r2_score(y_val_fold, y_hat)
 
-        print(f"[SPLIT RESULT] Model: Random Forest in split {i + 1} yielded an R2 Score of {r2_score_across_folds[i]}")
+        print(
+            f"[CV][Split {i + 1}] "
+            f"Model=Random Forest, "
+            f"R2={r2_score_across_folds[i]:.4f}"
+        )
 
     return r2_score_across_folds
 

@@ -35,6 +35,8 @@ def setup_model(
 
     if torch.backends.mps.is_available():
         torch.mps.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
 
     class FFN(nn.Module):
         def __init__(self, n_feats, n_layers, n_units):
@@ -198,7 +200,11 @@ def run_cv(
         train_loss_across_folds[i, :] = train_loss_across_epochs
         val_loss_across_folds[i, :] = val_loss_across_epochs
 
-        print(f"[SPLIT RESULT] Model: Feed Forward Neural Network in split {i + 1} yielded an R2 Score of {r2_score_across_folds[i]}")
+        print(
+            f"[CV][Split {i + 1}] "
+            f"Model=Feed Forward Neural Network, "
+            f"R2={r2_score_across_folds[i]:.4f}"
+        )
 
     return train_loss_across_folds, val_loss_across_folds, r2_score_across_folds
 

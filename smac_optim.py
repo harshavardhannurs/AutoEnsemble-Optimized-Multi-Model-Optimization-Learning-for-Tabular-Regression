@@ -13,6 +13,10 @@ import models.pfn as pfn
 
 import utils.model_utils as mu
 
+MODELS = {'ffn': 'Feed Forward Neural Network', 'xgb': 'XGBoost', 'randomforest': 'Random Forest', 'pfn': 'TabPFN'}
+
+DATASET_DICT = {1: 'bike_sharing_demand', 2: 'brazilian_houses', 3: 'super_conductivity', 4: 'wine_quality', 5: 'yprop_4_1'}
+
 # Hyperparameters
 
 model = Categorical('model', ['ffn', 'xgb', 'randomforest', 'pfn'], default='ffn')
@@ -84,7 +88,10 @@ def train(config, seed, dataset_name=None):
 
     model = config['model']
 
-    print(f"[Worker {os.getpid()}] has started evaluating the model: {mu.models[model]}", flush=True)
+    print(
+        f"[START][PID {os.getpid()}] Evaluating model={MODELS[model]}",
+        flush=True
+    )
 
     score = 0
 
@@ -138,12 +145,18 @@ def train(config, seed, dataset_name=None):
 
         score = mu.average(r2_score_across_folds)
 
-    print(f"[RESULT][Worker {os.getpid()}] has completed evaluating the model: {mu.models[model]} and the model yielded an R2 Score of {score} with the configuration \n {config}", flush=True)
+    print(
+        f"[RESULT][PID {os.getpid()}] "
+        f"Model={MODELS[model]}, "
+        f"R2={score:.4f}\n"
+        f"Configuration: {config}",
+        flush=True
+    )
 
     return 1 - score
 
 
-def main(dataset_name, n_trials=50, n_workers=1):
+def main(dataset_name, n_trials=20, n_workers=1):
 
     train_function = partial(
         train,
@@ -154,7 +167,7 @@ def main(dataset_name, n_trials=50, n_workers=1):
     scenario = Scenario(
         configspace=configspace,
         name=f'smac_optim_{dataset_name}',
-        output_directory=Path(__file__).resolve().parent/'outputs',
+        output_directory=Path(__file__).resolve().parent / 'outputs',
         walltime_limit=86400,
         n_trials=n_trials,
         n_workers=n_workers
@@ -164,10 +177,59 @@ def main(dataset_name, n_trials=50, n_workers=1):
 
     incumbent = smac.optimize()
 
-    return incumbent
+    print("Calculating the cost of the default configuration...", flush=True)
+    default_cost = smac.validate(configspace.get_default_configuration())
+    # smac.validate() evaluates the config, by default, across three random seeds and averages the cost across those three runs.
 
+    print("Calculating the cost of the incumbent configuration...", flush=True)
+    incumbent_cost = smac.validate(incumbent)
+
+    return incumbent, default_cost, incumbent_cost
+
+def get_user_dataset_selection():
+
+    print("The datasets available:", flush=True)
+    for key, name in DATASET_DICT.items():
+        print(f"  {key}. {name}", flush=True)
+
+    while True:
+        user_input = input("\nEnter the number corresponding to the dataset or \"exit\" to exit: ").strip()
+
+        if user_input.isdigit():
+            choice = int(user_input)
+            if choice in DATASET_DICT:
+                print("Dataset selected: ", DATASET_DICT[choice], flush=True)
+                return DATASET_DICT[choice]
+        if user_input.lower() == 'exit':
+            print("\nExiting...", flush=True)
+            return None
+
+        print(f"Invalid input. Please enter a number between 1 and {len(DATASET_DICT)}.", flush=True)
+
+def get_user_no_trials_selection():
+
+    while True:
+        user_input = input("\nEnter the number of trials you want SMAC to run or \"exit\" to exit: ").strip()
+
+        if user_input.isdigit():
+            choice = int(user_input)
+            if choice > 0:
+                print("No. of trials selected: ", choice, flush=True)
+                return choice
+        if user_input.lower() == 'exit':
+            print("\nExiting...", flush=True)
+            return None
+        print("Invalid input. Please enter a positive number.", flush=True)
 
 if __name__ == '__main__':
-    incumbent = main('brazilian_houses', n_trials=20, n_workers=5)
 
-    print("Incumbent: ", incumbent)
+    dataset_name = get_user_dataset_selection()
+    n_trials = get_user_no_trials_selection()
+
+    if dataset_name and n_trials:
+
+        incumbent, default_cost, incumbent_cost = main(dataset_name, n_trials=n_trials, n_workers=1)
+
+        print(f"Incumbent configuration: {incumbent}", flush=True)
+        print(f"R2 Score of baseline (default) configuration: {1-default_cost:.4f}", flush=True)
+        print(f"R2 Score of incumbent configuration: {1-incumbent_cost:.4f}", flush=True)
