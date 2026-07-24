@@ -178,8 +178,6 @@ def run_cv(
                 best_loss = val_loss_across_epochs[epochi]
                 best_weights = deepcopy(model.state_dict())
 
-            print(f'[Worker {os.getpid()}] CV Split {i + 1}/{n_splits} >> Epoch {epochi + 1}/{num_epochs} - Train Loss: {train_loss_across_epochs[epochi]:.4f} || Validation Loss: {val_loss_across_epochs[epochi]:.4f}')
-
         model.load_state_dict(best_weights)
 
         model.eval()
@@ -199,6 +197,8 @@ def run_cv(
 
         train_loss_across_folds[i, :] = train_loss_across_epochs
         val_loss_across_folds[i, :] = val_loss_across_epochs
+
+        print(f"[SPLIT RESULT] Model: Feed Forward Neural Network in split {i + 1} yielded an R2 Score of {r2_score_across_folds[i]}")
 
     return train_loss_across_folds, val_loss_across_folds, r2_score_across_folds
 

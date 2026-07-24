@@ -77,6 +77,8 @@ def run_cv(
 
         r2_score_across_folds[i] = mu.get_r2_score(y_val_fold, y_hat)
 
+        print(f"[SPLIT RESULT] Model: Random Forest in split {i + 1} yielded an R2 Score of {r2_score_across_folds[i]}")
+
     return r2_score_across_folds
 
 def pipelined_model(

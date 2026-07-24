@@ -84,7 +84,7 @@ def train(config, seed, dataset_name=None):
 
     model = config['model']
 
-    print(f"[Worker {os.getpid()}] is currently evaluating model {model}...", flush=True)
+    print(f"[Worker {os.getpid()}] has started evaluating the model: {mu.models[model]}", flush=True)
 
     score = 0
 
@@ -138,7 +138,7 @@ def train(config, seed, dataset_name=None):
 
         score = mu.average(r2_score_across_folds)
 
-    print(f"[Worker {os.getpid()}] has completed the evaluation the model {model} and the model yielded an average CV R2 Score of {score} with the configuration \n {config}", flush=True)
+    print(f"[RESULT][Worker {os.getpid()}] has completed evaluating the model: {mu.models[model]} and the model yielded an R2 Score of {score} with the configuration \n {config}", flush=True)
 
     return 1 - score
 
@@ -154,7 +154,7 @@ def main(dataset_name, n_trials=50, n_workers=1):
     scenario = Scenario(
         configspace=configspace,
         name=f'smac_optim_{dataset_name}',
-        output_directory=Path(__file__).resolve().parent / 'outputs',
+        output_directory=Path(__file__).resolve().parent/'outputs',
         walltime_limit=86400,
         n_trials=n_trials,
         n_workers=n_workers
