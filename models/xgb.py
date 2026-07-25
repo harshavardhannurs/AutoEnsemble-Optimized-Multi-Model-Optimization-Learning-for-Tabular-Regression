@@ -32,7 +32,7 @@ def setup_model(
         subsample=subsample,
         colsample_bytree=colsample_bytree,
         reg_lambda=reg_lambda,
-        n_jobs=-1,
+        n_jobs=1,
         random_state=seed
     )
 

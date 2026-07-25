@@ -14,13 +14,13 @@ import models.pfn as pfn
 import utils.model_utils as mu
 from output_visual import export_smac_results
 
-MODELS = {'ffn': 'Feed Forward Neural Network', 'xgb': 'XGBoost', 'randomforest': 'Random Forest', 'pfn': 'TabPFN'}
+MODELS = {'ffn': 'Feed Forward Neural Network', 'xgb': 'XGBoost', 'randomforest': 'Random Forest', 'pfn': 'TabPFN', 'extratrees': 'Extra Trees'}
 
 DATASET_DICT = {1: 'bike_sharing_demand', 2: 'brazilian_houses', 3: 'superconductivity', 4: 'wine_quality', 5: 'yprop_4_1'}
 
 # Hyperparameters
 
-model = Categorical('model', ['ffn', 'xgb', 'randomforest', 'pfn'], default='ffn')
+model = Categorical('model', ['ffn', 'xgb', 'randomforest', 'pfn', 'extratrees'], default='ffn')
 
 batch_size = Categorical('batch_size', [32, 64, 128, 256],  default=64)
 no_of_layers = Integer('no_of_layers', (1, 4), default=2)
@@ -38,9 +38,14 @@ colsample_bytree = Float('colsample_bytree',(0.5,1.0),default=0.8)
 reg_lambda = Float('reg_lambda', (1e-3, 100), default=1e-3, log=True)
 
 n_estimators_rf = Categorical('n_estimators_rf', [50, 100, 200, 500], default=100)
-max_depth_rf = Categorical('max_depth_rf', [5, 10, 20, 30, 50], default=5)
-min_samples_leaf = Integer('min_samples_leaf', (1, 20), default=1)
-max_features = Float('max_features', (0.5, 1.0), default=1.0)
+max_depth_rf = Categorical('max_depth_rf', [None, 5, 10, 20, 30, 50], default=5)
+min_samples_leaf_rf = Integer('min_samples_leaf_rf', (1, 20), default=1)
+max_features_rf = Categorical('max_features_rf', [0.3, 0.5, 0.7, 1.0], default=1.0)
+
+n_estimators_et = Categorical('n_estimators_et', [50, 100, 200, 500], default=100)
+max_depth_et = Categorical('max_depth_et', [None, 5, 10, 20, 30, 50], default=5)
+min_samples_leaf_et = Integer('min_samples_leaf_et', (1, 20), default=1)
+max_features_et = Categorical('max_features_et', [0.3, 0.5, 0.7, 1.0], default=1.0)
 
 n_estimators_pfn = Categorical('n_estimators_pfn', [4, 8, 16, 32], default=8)
 
@@ -61,9 +66,14 @@ cond_xgb_5 = EqualsCondition(reg_lambda, model, 'xgb')
 cond_xgb_6 = EqualsCondition(n_estimators_xgb, model, 'xgb')
 
 cond_rf_1 = EqualsCondition(max_depth_rf, model, 'randomforest')
-cond_rf_2 = EqualsCondition(min_samples_leaf, model, 'randomforest')
-cond_rf_3 = EqualsCondition(max_features, model, 'randomforest')
+cond_rf_2 = EqualsCondition(min_samples_leaf_rf, model, 'randomforest')
+cond_rf_3 = EqualsCondition(max_features_rf, model, 'randomforest')
 cond_rf_4 = EqualsCondition(n_estimators_rf, model, 'randomforest')
+
+cond_et_1 = EqualsCondition(max_depth_et, model, 'extratrees')
+cond_et_2 = EqualsCondition(min_samples_leaf_et, model, 'extratrees')
+cond_et_3 = EqualsCondition(max_features_et, model, 'extratrees')
+cond_et_4 = EqualsCondition(n_estimators_et, model, 'extratrees')
 
 cond_pfn_1 = EqualsCondition(n_estimators_pfn, model, 'pfn')
 
@@ -74,7 +84,8 @@ configspace.add([
     model,
     batch_size, no_of_layers, no_of_units, learning_rate_ffn, weight_decay, batch_norm, num_epochs,
     n_estimators_xgb, learning_rate_xgb, max_depth_xgb, subsample, colsample_bytree, reg_lambda,
-    n_estimators_rf, max_depth_rf, min_samples_leaf, max_features,
+    n_estimators_rf, max_depth_rf, min_samples_leaf_rf, max_features_rf,
+    n_estimators_et, max_depth_et, min_samples_leaf_et, max_features_et,
     n_estimators_pfn
 ])
 
@@ -82,6 +93,7 @@ configspace.add([
     cond_ffn_1, cond_ffn_2, cond_ffn_3, cond_ffn_4, cond_ffn_5, cond_ffn_6, cond_ffn_7,
     cond_xgb_1, cond_xgb_2, cond_xgb_3, cond_xgb_4, cond_xgb_5, cond_xgb_6,
     cond_rf_1, cond_rf_2, cond_rf_3, cond_rf_4,
+    cond_et_1, cond_et_2, cond_et_3, cond_et_4,
     cond_pfn_1
 ])
 
@@ -130,8 +142,20 @@ def train(config, seed, dataset_name=None):
             dataset_name=dataset_name,
             n_estimators=int(config['n_estimators_rf']),
             max_depth=config['max_depth_rf'],
-            min_samples_leaf=config['min_samples_leaf'],
-            max_features=config['max_features'],
+            min_samples_leaf=config['min_samples_leaf_rf'],
+            max_features=float(config['max_features_rf']),
+            seed=seed
+        )
+
+        score = mu.average(r2_score_across_folds)
+
+    elif model == 'extratrees':
+        r2_score_across_folds = rf.pipelined_model(
+            dataset_name=dataset_name,
+            n_estimators=int(config['n_estimators_et']),
+            max_depth=config['max_depth_et'],
+            min_samples_leaf=config['min_samples_leaf_et'],
+            max_features=float(config['max_features_et']),
             seed=seed
         )
 
@@ -177,7 +201,8 @@ def main(dataset_name, n_trials=20, n_workers=1):
         walltime_limit=86400,
         n_trials=n_trials,
         n_workers=n_workers,
-        deterministic=True, # SMAC evaluates promising configs multiple times across different seeds to check if it wasn't a fluke. We are avoiding evaluating the same configuration multiple times with multiple seeds because our target function returns CV score, and it already averages out the noise.
+        deterministic=True,
+        # SMAC evaluates incumbent contender config multiple times across different seeds to check if the score returned first time wasn't a fluke. With deterministic=True, we are avoiding evaluating the same configuration multiple times across multiple seeds since our target function returns CV score, and it already averages out the noise.
     )
 
     smac = HPOFacade(scenario=scenario, target_function=train_function)
