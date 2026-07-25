@@ -26,7 +26,7 @@ def setup_model(
         max_depth=max_depth,
         min_samples_leaf=min_samples_leaf,
         max_features=max_features,
-        n_jobs=-1,
+        n_jobs=1,
         random_state=seed
     )
     return rfr
