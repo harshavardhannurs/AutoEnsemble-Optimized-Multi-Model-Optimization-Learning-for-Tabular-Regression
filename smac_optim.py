@@ -42,7 +42,7 @@ max_depth_rf = Categorical('max_depth_rf', [5, 10, 20, 30, 50], default=5)
 min_samples_leaf = Integer('min_samples_leaf', (1, 20), default=1)
 max_features = Float('max_features', (0.5, 1.0), default=1.0)
 
-n_estimators_pfn = Categorical('n_estimators_pfn', [8, 16, 32, 64, 128, 256], default=32)
+n_estimators_pfn = Categorical('n_estimators_pfn', [4, 8, 16, 32], default=8)
 
 # Conditions
 cond_ffn_1 = EqualsCondition(batch_size, model, 'ffn')
@@ -176,7 +176,8 @@ def main(dataset_name, n_trials=20, n_workers=1):
         deterministic=True,
         walltime_limit=86400,
         n_trials=n_trials,
-        n_workers=n_workers
+        n_workers=n_workers,
+        deterministic=True, # SMAC evaluates promising configs multiple times across different seeds to check if it wasn't a fluke. We are avoiding evaluating the same configuration multiple times with multiple seeds because our target function returns CV score, and it already averages out the noise.
     )
 
     smac = HPOFacade(scenario=scenario, target_function=train_function)
