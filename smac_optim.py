@@ -37,7 +37,7 @@ colsample_bytree = Float('colsample_bytree',(0.5,1.0),default=0.8)
 reg_lambda = Float('reg_lambda', (1e-3, 100), default=1e-3, log=True)
 
 n_estimators_rf = Categorical('n_estimators_rf', [50, 100, 200, 500], default=100)
-max_depth_rf = Categorical('max_depth_rf', ['None', 5, 10, 20, 30, 50], default=5)
+max_depth_rf = Categorical('max_depth_rf', [5, 10, 20, 30, 50], default=5)
 min_samples_leaf = Integer('min_samples_leaf', (1, 20), default=1)
 max_features = Float('max_features', (0.5, 1.0), default=1.0)
 
@@ -221,14 +221,29 @@ def get_user_no_trials_selection():
             return None
         print("Invalid input. Please enter a positive number.", flush=True)
 
+def get_user_no_workers_selection():
+    while True:
+        user_input = input("\nEnter the number of workers you want SMAC to use to run the optimization or \"exit\" to exit: ").strip()
+
+        if user_input.isdigit():
+            choice = int(user_input)
+            if choice > 0:
+                print("No. of workers selected: ", choice, flush=True)
+                return choice
+        if user_input.lower() == 'exit':
+            print("\nExiting...", flush=True)
+            return None
+        print("Invalid input. Please enter a positive number.", flush=True)
+
 if __name__ == '__main__':
 
     dataset_name = get_user_dataset_selection()
     n_trials = get_user_no_trials_selection()
+    n_workers = get_user_no_workers_selection()
 
-    if dataset_name and n_trials:
+    if dataset_name and n_trials and n_workers:
 
-        incumbent, default_cost, incumbent_cost = main(dataset_name, n_trials=n_trials, n_workers=1)
+        incumbent, default_cost, incumbent_cost = main(dataset_name, n_trials=n_trials, n_workers=n_workers)
 
         print(f"Incumbent configuration: {incumbent}", flush=True)
         print(f"R2 Score of baseline (default) configuration: {1-default_cost:.4f}", flush=True)
