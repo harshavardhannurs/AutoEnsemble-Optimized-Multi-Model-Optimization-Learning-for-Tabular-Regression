@@ -1,0 +1,269 @@
+{
+  "type": "Scheduler",
+  "id": "Scheduler-28098155-8216-4885-86b7-2f415ce8d979",
+  "address": "tcp://127.0.0.1:52923",
+  "services": {
+    "dashboard": 8787
+  },
+  "started": 1784981996.7217321,
+  "n_workers": 5,
+  "total_threads": 5,
+  "total_memory": 19327352830,
+  "workers": {
+    "tcp://127.0.0.1:52943": {
+      "type": "Worker",
+      "id": 2,
+      "host": "127.0.0.1",
+      "resources": {},
+      "local_directory": "/Users/ayushmangukia/Downloads/AutoML/automl_/outputs/smac_optim_bike_sharing_demand/0/dask-scratch-space/worker-ujxasfbw",
+      "name": 2,
+      "nthreads": 1,
+      "memory_limit": 3865470566,
+      "last_seen": 1784982000.167437,
+      "services": {
+        "dashboard": 52949
+      },
+      "metrics": {
+        "task_counts": {},
+        "bandwidth": {
+          "total": 100000000,
+          "workers": {},
+          "types": {}
+        },
+        "digests_total_since_heartbeat": {},
+        "managed_bytes": 0,
+        "spilled_bytes": {
+          "memory": 0,
+          "disk": 0
+        },
+        "transfer": {
+          "incoming_bytes": 0,
+          "incoming_count": 0,
+          "incoming_count_total": 0,
+          "outgoing_bytes": 0,
+          "outgoing_count": 0,
+          "outgoing_count_total": 0
+        },
+        "event_loop_interval": 0.02,
+        "cpu": 0.0,
+        "memory": 478150656,
+        "time": 1784982000.126029,
+        "host_net_io": {
+          "read_bps": 0.0,
+          "write_bps": 0.0
+        },
+        "host_disk_io": {
+          "read_bps": 0.0,
+          "write_bps": 0.0
+        },
+        "num_fds": 22
+      },
+      "status": "running",
+      "nanny": "tcp://127.0.0.1:52930"
+    },
+    "tcp://127.0.0.1:52944": {
+      "type": "Worker",
+      "id": 4,
+      "host": "127.0.0.1",
+      "resources": {},
+      "local_directory": "/Users/ayushmangukia/Downloads/AutoML/automl_/outputs/smac_optim_bike_sharing_demand/0/dask-scratch-space/worker-1d4htwle",
+      "name": 4,
+      "nthreads": 1,
+      "memory_limit": 3865470566,
+      "last_seen": 1784982000.167915,
+      "services": {
+        "dashboard": 52952
+      },
+      "metrics": {
+        "task_counts": {},
+        "bandwidth": {
+          "total": 100000000,
+          "workers": {},
+          "types": {}
+        },
+        "digests_total_since_heartbeat": {},
+        "managed_bytes": 0,
+        "spilled_bytes": {
+          "memory": 0,
+          "disk": 0
+        },
+        "transfer": {
+          "incoming_bytes": 0,
+          "incoming_count": 0,
+          "incoming_count_total": 0,
+          "outgoing_bytes": 0,
+          "outgoing_count": 0,
+          "outgoing_count_total": 0
+        },
+        "event_loop_interval": 0.02,
+        "cpu": 0.0,
+        "memory": 477478912,
+        "time": 1784982000.126252,
+        "host_net_io": {
+          "read_bps": 0.0,
+          "write_bps": 0.0
+        },
+        "host_disk_io": {
+          "read_bps": 0.0,
+          "write_bps": 0.0
+        },
+        "num_fds": 22
+      },
+      "status": "running",
+      "nanny": "tcp://127.0.0.1:52934"
+    },
+    "tcp://127.0.0.1:52945": {
+      "type": "Worker",
+      "id": 0,
+      "host": "127.0.0.1",
+      "resources": {},
+      "local_directory": "/Users/ayushmangukia/Downloads/AutoML/automl_/outputs/smac_optim_bike_sharing_demand/0/dask-scratch-space/worker-_iivsb91",
+      "name": 0,
+      "nthreads": 1,
+      "memory_limit": 3865470566,
+      "last_seen": 1784982000.154474,
+      "services": {
+        "dashboard": 52948
+      },
+      "metrics": {
+        "task_counts": {},
+        "bandwidth": {
+          "total": 100000000,
+          "workers": {},
+          "types": {}
+        },
+        "digests_total_since_heartbeat": {},
+        "managed_bytes": 0,
+        "spilled_bytes": {
+          "memory": 0,
+          "disk": 0
+        },
+        "transfer": {
+          "incoming_bytes": 0,
+          "incoming_count": 0,
+          "incoming_count_total": 0,
+          "outgoing_bytes": 0,
+          "outgoing_count": 0,
+          "outgoing_count_total": 0
+        },
+        "event_loop_interval": 0.02,
+        "cpu": 0.0,
+        "memory": 476528640,
+        "time": 1784982000.126555,
+        "host_net_io": {
+          "read_bps": 0.0,
+          "write_bps": 0.0
+        },
+        "host_disk_io": {
+          "read_bps": 0.0,
+          "write_bps": 0.0
+        },
+        "num_fds": 22
+      },
+      "status": "running",
+      "nanny": "tcp://127.0.0.1:52926"
+    },
+    "tcp://127.0.0.1:52946": {
+      "type": "Worker",
+      "id": 1,
+      "host": "127.0.0.1",
+      "resources": {},
+      "local_directory": "/Users/ayushmangukia/Downloads/AutoML/automl_/outputs/smac_optim_bike_sharing_demand/0/dask-scratch-space/worker-sby5hxlw",
+      "name": 1,
+      "nthreads": 1,
+      "memory_limit": 3865470566,
+      "last_seen": 1784982000.167137,
+      "services": {
+        "dashboard": 52953
+      },
+      "metrics": {
+        "task_counts": {},
+        "bandwidth": {
+          "total": 100000000,
+          "workers": {},
+          "types": {}
+        },
+        "digests_total_since_heartbeat": {},
+        "managed_bytes": 0,
+        "spilled_bytes": {
+          "memory": 0,
+          "disk": 0
+        },
+        "transfer": {
+          "incoming_bytes": 0,
+          "incoming_count": 0,
+          "incoming_count_total": 0,
+          "outgoing_bytes": 0,
+          "outgoing_count": 0,
+          "outgoing_count_total": 0
+        },
+        "event_loop_interval": 0.02,
+        "cpu": 0.0,
+        "memory": 477200384,
+        "time": 1784982000.127541,
+        "host_net_io": {
+          "read_bps": 0.0,
+          "write_bps": 0.0
+        },
+        "host_disk_io": {
+          "read_bps": 4148024.343782509,
+          "write_bps": 0.0
+        },
+        "num_fds": 22
+      },
+      "status": "running",
+      "nanny": "tcp://127.0.0.1:52928"
+    },
+    "tcp://127.0.0.1:52947": {
+      "type": "Worker",
+      "id": 3,
+      "host": "127.0.0.1",
+      "resources": {},
+      "local_directory": "/Users/ayushmangukia/Downloads/AutoML/automl_/outputs/smac_optim_bike_sharing_demand/0/dask-scratch-space/worker-6fftcmqr",
+      "name": 3,
+      "nthreads": 1,
+      "memory_limit": 3865470566,
+      "last_seen": 1784982000.1681,
+      "services": {
+        "dashboard": 52954
+      },
+      "metrics": {
+        "task_counts": {},
+        "bandwidth": {
+          "total": 100000000,
+          "workers": {},
+          "types": {}
+        },
+        "digests_total_since_heartbeat": {},
+        "managed_bytes": 0,
+        "spilled_bytes": {
+          "memory": 0,
+          "disk": 0
+        },
+        "transfer": {
+          "incoming_bytes": 0,
+          "incoming_count": 0,
+          "incoming_count_total": 0,
+          "outgoing_bytes": 0,
+          "outgoing_count": 0,
+          "outgoing_count_total": 0
+        },
+        "event_loop_interval": 0.02,
+        "cpu": 0.0,
+        "memory": 477495296,
+        "time": 1784982000.127362,
+        "host_net_io": {
+          "read_bps": 0.0,
+          "write_bps": 0.0
+        },
+        "host_disk_io": {
+          "read_bps": 0.0,
+          "write_bps": 0.0
+        },
+        "num_fds": 22
+      },
+      "status": "running",
+      "nanny": "tcp://127.0.0.1:52932"
+    }
+  }
+}

@@ -12,6 +12,7 @@ import models.xgb as xgb
 import models.pfn as pfn
 
 import utils.model_utils as mu
+from output_visual import export_smac_results
 
 MODELS = {'ffn': 'Feed Forward Neural Network', 'xgb': 'XGBoost', 'randomforest': 'Random Forest', 'pfn': 'TabPFN'}
 
@@ -168,6 +169,11 @@ def main(dataset_name, n_trials=20, n_workers=1):
         configspace=configspace,
         name=f'smac_optim_{dataset_name}',
         output_directory=Path(__file__).resolve().parent / 'outputs',
+        # Each target-function call already averages performance over 10
+        # cross-validation folds. Treat that aggregate as deterministic so
+        # every candidate needs only one completed evaluation to compete for
+        # incumbent status, regardless of model runtime.
+        deterministic=True,
         walltime_limit=86400,
         n_trials=n_trials,
         n_workers=n_workers
@@ -183,6 +189,16 @@ def main(dataset_name, n_trials=20, n_workers=1):
 
     print("Calculating the cost of the incumbent configuration...", flush=True)
     incumbent_cost = smac.validate(incumbent)
+
+    try:
+        csv_path = export_smac_results(
+            Path(__file__).resolve().parent / 'outputs' / f'smac_optim_{dataset_name}'
+        )
+        print(f"SMAC trial results exported to: {csv_path}", flush=True)
+    except (FileNotFoundError, OSError, ValueError) as exc:
+        # The optimization results remain valid even if the convenience export
+        # cannot be written (for example, because the destination is read-only).
+        print(f"[WARNING] Could not export SMAC trial results: {exc}", flush=True)
 
     return incumbent, default_cost, incumbent_cost
 

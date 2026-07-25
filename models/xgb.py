@@ -6,6 +6,7 @@ from xgboost import XGBRegressor
 
 import utils.data_utils as du
 import utils.model_utils as mu
+from utils.feature_engineering import FeatureAugmenter
 
 def prepare_data(dataset_name, seed=42):
 
@@ -56,6 +57,10 @@ def run_cv(
         X_val_fold = X_train.iloc[val_indices]
         y_train_fold = y_train.iloc[train_indices]
         y_val_fold = y_train.iloc[val_indices]
+
+        feature_augmenter = FeatureAugmenter()
+        X_train_fold = feature_augmenter.fit_transform(X_train_fold)
+        X_val_fold = feature_augmenter.transform(X_val_fold)
 
         transformer_X, _ = du.data_transformer(X_train_fold, y_train_fold, scale_numeric=False, impute_missing=False)
 
@@ -128,5 +133,4 @@ if __name__ == '__main__':
 
     print("The current hyperparameter configuration for XGB yields an average R2 Score of",
           mu.average(r2_score_across_folds))
-
 

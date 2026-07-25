@@ -1,0 +1,57 @@
+{
+  "stats": {
+    "submitted": 2,
+    "finished": 2,
+    "running": 0
+  },
+  "data": [
+    {
+      "config_id": 1,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.7797880411148072,
+      "time": 1.7725200653076172,
+      "cpu_time": 3.686262,
+      "status": 1,
+      "starttime": 1784985940.5774112,
+      "endtime": 1784985942.351351,
+      "additional_info": {}
+    },
+    {
+      "config_id": 2,
+      "instance": null,
+      "seed": 209652396,
+      "budget": null,
+      "cost": 0.652115812668588,
+      "time": 1.2512922286987305,
+      "cpu_time": 7.594758000000001,
+      "status": 1,
+      "starttime": 1784985942.3529758,
+      "endtime": 1784985943.605152,
+      "additional_info": {}
+    }
+  ],
+  "configs": {
+    "1": {
+      "model": "xgb",
+      "colsample_bytree": 0.6058881185018,
+      "learning_rate_xgb": 0.0168831073264,
+      "max_depth_xgb": 12,
+      "n_estimators_xgb": 50,
+      "reg_lambda": 31.0357869402807,
+      "subsample": 0.7502462584525
+    },
+    "2": {
+      "model": "randomforest",
+      "max_depth_rf": 10,
+      "max_features": 0.5509635452181,
+      "min_samples_leaf": 6,
+      "n_estimators_rf": 100
+    }
+  },
+  "config_origins": {
+    "1": "Initial Design: Sobol",
+    "2": "Initial Design: Sobol"
+  }
+}
