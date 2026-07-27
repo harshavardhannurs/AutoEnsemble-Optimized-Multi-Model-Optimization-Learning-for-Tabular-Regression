@@ -3,6 +3,8 @@ import torch
 from sklearn.metrics import r2_score
 import matplotlib.pyplot as plt
 
+MODELS = {'ffn': 'Feed Forward Neural Network', 'xgb': 'XGBoost', 'randomforest': 'Random Forest', 'pfn': 'TabPFN', 'extratrees': 'Extra Trees', 'hgb': 'Histogram Gradient Boosting'}
+
 def set_device():
 
     device = torch.device('cpu')

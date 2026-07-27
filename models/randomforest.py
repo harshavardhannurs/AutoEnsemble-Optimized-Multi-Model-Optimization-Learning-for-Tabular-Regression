@@ -57,6 +57,9 @@ def run_cv(
         X_train_fold = transformer_X.fit_transform(X_train_fold)
         X_val_fold = transformer_X.transform(X_val_fold)
 
+        X_train_fold = du.to_dense(X_train_fold)
+        X_val_fold = du.to_dense(X_val_fold)
+
         # No need to transform the target as random forests split features like: xj < threshold. Scaling only adds complexity
 
         y_train_fold = y_train_fold.values.ravel()
@@ -108,17 +111,38 @@ def pipelined_model(
 
     return r2_score_across_folds
 
-if __name__ == '__main__':
-    r2_score_across_folds = pipelined_model(
-        dataset_name='bike_sharing_demand',
-        n_estimators=100,
-        max_depth=None,
-        min_samples_leaf=3,
-        max_features=0.7,
-        n_splits=10,
+def train(
+        dataset_name,
+        model_hps,
         seed=42
+):
+    n_estimators, max_depth, min_samples_leaf, max_features = model_hps
+
+    X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
+    transformer_X, _ = du.data_transformer(X_train, y_train, scale_numeric=False, impute_missing=False)
+    X_train = du.to_dense(transformer_X.fit_transform(X_train))
+    X_test = du.to_dense(transformer_X.transform(X_test))
+    y_train = y_train.values.ravel()
+    y_test = y_test.values.ravel()
+
+    model = setup_model(
+        n_estimators=n_estimators,
+        max_depth=max_depth,
+        min_samples_leaf=min_samples_leaf,
+        max_features=max_features,
+        seed=seed
     )
 
-    print("The current hyperparameter configuration for Random Forest yields an average R2 Score of",
-          mu.average(r2_score_across_folds))
+    print('Training the model...')
+    model.fit(X_train, y_train)
+
+    print('Evaluating the model on test set...')
+    y_hat = model.predict(X_test)
+
+    r2_score = mu.get_r2_score(y_test, y_hat)
+
+    return model, y_test, y_hat, r2_score
+
+if __name__ == '__main__':
+    pass
 

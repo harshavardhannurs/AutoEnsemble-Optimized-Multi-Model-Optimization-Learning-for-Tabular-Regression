@@ -4,7 +4,7 @@ from functools import partial
 
 from ConfigSpace import ConfigurationSpace, Categorical, Float, Integer, EqualsCondition
 
-from smac import HyperparameterOptimizationFacade as HPOFacade, Scenario
+from smac import HyperparameterOptimizationFacade as HPOFacade, Scenario, MultiFidelityFacade as MFFacade
 
 import models.ffn as ffn
 import models.randomforest as rf
@@ -14,10 +14,6 @@ import models.extratrees as et
 import models.hgb as hgb
 
 import utils.model_utils as mu
-
-MODELS = {'ffn': 'Feed Forward Neural Network', 'xgb': 'XGBoost', 'randomforest': 'Random Forest', 'pfn': 'TabPFN', 'extratrees': 'Extra Trees', 'hgb': 'Histogram Gradient Boosting'}
-
-DATASET_DICT = {1: 'bike_sharing_demand', 2: 'brazilian_houses', 3: 'superconductivity', 4: 'wine_quality', 5: 'yprop_4_1'}
 
 # Hyperparameters
 
@@ -56,8 +52,6 @@ l2_reg_hgb = Float('l2_reg_hgb', (1e-3, 100), default=1e-3, log=True)
 max_features_hgb = Categorical('max_features_hgb', [0.3, 0.5, 0.7, 1.0], default=1.0)
 max_bins_hgb = Categorical('max_bins_hgb', [64, 128, 255], default=255)
 
-n_estimators_pfn = Categorical('n_estimators_pfn', [4, 8, 16, 32], default=8)
-
 # Conditions
 cond_ffn_1 = EqualsCondition(batch_size, model, 'ffn')
 cond_ffn_2 = EqualsCondition(no_of_layers, model, 'ffn')
@@ -92,8 +86,6 @@ cond_hgb_5 = EqualsCondition(l2_reg_hgb, model, 'hgb')
 cond_hgb_6 = EqualsCondition(max_features_hgb, model, 'hgb')
 cond_hgb_7 = EqualsCondition(max_bins_hgb, model, 'hgb')
 
-cond_pfn_1 = EqualsCondition(n_estimators_pfn, model, 'pfn')
-
 # Create Configuration Space
 configspace = ConfigurationSpace()
 
@@ -103,8 +95,7 @@ configspace.add([
     n_estimators_xgb, learning_rate_xgb, max_depth_xgb, subsample, colsample_bytree, reg_lambda,
     n_estimators_rf, max_depth_rf, min_samples_leaf_rf, max_features_rf,
     n_estimators_et, max_depth_et, min_samples_leaf_et, max_features_et,
-    max_iter_hgb, learning_rate_hgb, max_leaf_nodes_hgb, min_samples_leaf_hgb, l2_reg_hgb, max_features_hgb, max_bins_hgb,
-    n_estimators_pfn
+    max_iter_hgb, learning_rate_hgb, max_leaf_nodes_hgb, min_samples_leaf_hgb, l2_reg_hgb, max_features_hgb, max_bins_hgb
 ])
 
 configspace.add([
@@ -112,23 +103,22 @@ configspace.add([
     cond_xgb_1, cond_xgb_2, cond_xgb_3, cond_xgb_4, cond_xgb_5, cond_xgb_6,
     cond_rf_1, cond_rf_2, cond_rf_3, cond_rf_4,
     cond_et_1, cond_et_2, cond_et_3, cond_et_4,
-    cond_hgb_1, cond_hgb_2, cond_hgb_3, cond_hgb_4, cond_hgb_5, cond_hgb_6, cond_hgb_7,
-    cond_pfn_1
+    cond_hgb_1, cond_hgb_2, cond_hgb_3, cond_hgb_4, cond_hgb_5, cond_hgb_6, cond_hgb_7
 ])
 
-def train(config, seed, dataset_name=None):
+def hpo_train(config, seed, dataset_name=None):
 
     model = config['model']
 
     print(
-        f"[START][PID {os.getpid()}] Evaluating model={MODELS[model]}",
+        f"[START][PID {os.getpid()}] Evaluating model={mu.MODELS[model]}",
         flush=True
     )
 
     score = 0
 
     if model == 'ffn':
-        _, __, r2_score_across_folds = ffn.pipelined_model(
+        r2_score_across_folds = ffn.pipelined_model(
             dataset_name=dataset_name,
             batch_size=int(config['batch_size']),
             no_of_layers=config['no_of_layers'],
@@ -196,17 +186,16 @@ def train(config, seed, dataset_name=None):
         score = mu.average(r2_score_across_folds)
 
     elif model == 'pfn':
-        r2_score_across_folds = pfn.pipelined_model(
+        _, __, ___, r2_score = pfn.train(
             dataset_name=dataset_name,
-            n_estimators=int(config['n_estimators_pfn']),
-            seed=seed
+            seed=seed,
         )
 
-        score = mu.average(r2_score_across_folds)
+        score = r2_score
 
     print(
         f"[RESULT][PID {os.getpid()}] "
-        f"Model={MODELS[model]}, "
+        f"Model={mu.MODELS[model]}, "
         f"R2={score:.4f}\n"
         f"Configuration: {config}",
         flush=True
@@ -214,22 +203,21 @@ def train(config, seed, dataset_name=None):
 
     return 1 - score
 
-
-def main(dataset_name, n_trials=20, n_workers=1):
+def run_hp_optimizer(dataset_name, n_trials, n_workers, walltime_limit):
 
     train_function = partial(
-        train,
+        hpo_train,
         dataset_name=dataset_name
     )
 
     # Create Scenario
     scenario = Scenario(
         configspace=configspace,
-        name=f'smac_optim_{dataset_name}',
-        output_directory=Path(__file__).resolve().parent / 'outputs',
-        walltime_limit=86400,
+        name=f'smac_hp_optim_{dataset_name}',
+        output_directory=Path(__file__).resolve().parent / 'outputs' / 'hpo',
         n_trials=n_trials,
         n_workers=n_workers,
+        walltime_limit=walltime_limit,
         deterministic=True,
         # SMAC evaluates incumbent contender config multiple times across different seeds to check if the score returned first time wasn't a fluke. With deterministic=True, we are avoiding evaluating the same configuration multiple times across multiple seeds since our target function returns CV score, and it already averages out the noise.
     )
@@ -238,74 +226,128 @@ def main(dataset_name, n_trials=20, n_workers=1):
 
     incumbent = smac.optimize()
 
-    print("Calculating the cost of the default configuration...", flush=True)
-    default_cost = smac.validate(configspace.get_default_configuration())
-    # smac.validate() evaluates the config, by default, across three random seeds and averages the cost across those three runs.
+    return smac, incumbent
 
-    print("Calculating the cost of the incumbent configuration...", flush=True)
-    incumbent_cost = smac.validate(incumbent)
+def mfo_train(config, seed, budget, dataset_name=None):
 
-    return incumbent, default_cost, incumbent_cost
+    model = config['model']
 
-def get_user_dataset_selection():
+    print(
+        f"[START][PID {os.getpid()}] Evaluating model={mu.MODELS[model]}",
+        flush=True
+    )
 
-    print("The datasets available:", flush=True)
-    for key, name in DATASET_DICT.items():
-        print(f"  {key}. {name}", flush=True)
+    score = 0
 
-    while True:
-        user_input = input("\nEnter the number corresponding to the dataset or \"exit\" to exit: ").strip()
+    if model == 'ffn':
+        r2_score_across_folds = ffn.pipelined_model(
+            dataset_name=dataset_name,
+            batch_size=int(config['batch_size']),
+            no_of_layers=config['no_of_layers'],
+            no_of_units=int(config['no_of_units']),
+            learning_rate=config['learning_rate_ffn'],
+            weight_decay=config['weight_decay'],
+            batch_norm=config['batch_norm'],
+            num_epochs=int(budget),
+            seed=seed
+        )
 
-        if user_input.isdigit():
-            choice = int(user_input)
-            if choice in DATASET_DICT:
-                print("Dataset selected: ", DATASET_DICT[choice], flush=True)
-                return DATASET_DICT[choice]
-        if user_input.lower() == 'exit':
-            print("\nExiting...", flush=True)
-            return None
+        score = mu.average(r2_score_across_folds)
 
-        print(f"Invalid input. Please enter a number between 1 and {len(DATASET_DICT)}.", flush=True)
+    elif model == 'xgb':
+        r2_score_across_folds = xgb.pipelined_model(
+            dataset_name=dataset_name,
+            n_estimators=int(budget),
+            learning_rate=config['learning_rate_xgb'],
+            max_depth=config['max_depth_xgb'],
+            subsample=config['subsample'],
+            colsample_bytree=config['colsample_bytree'],
+            reg_lambda=config['reg_lambda'],
+            seed=seed
+        )
 
-def get_user_no_trials_selection():
+        score = mu.average(r2_score_across_folds)
 
-    while True:
-        user_input = input("\nEnter the number of trials you want SMAC to run or \"exit\" to exit: ").strip()
+    elif model == 'randomforest':
+        r2_score_across_folds = rf.pipelined_model(
+            dataset_name=dataset_name,
+            n_estimators=int(budget),
+            max_depth=(None if config['max_depth_rf'] == 'None' else config['max_depth_rf']),
+            min_samples_leaf=config['min_samples_leaf_rf'],
+            max_features=float(config['max_features_rf']),
+            seed=seed
+        )
 
-        if user_input.isdigit():
-            choice = int(user_input)
-            if choice > 0:
-                print("No. of trials selected: ", choice, flush=True)
-                return choice
-        if user_input.lower() == 'exit':
-            print("\nExiting...", flush=True)
-            return None
-        print("Invalid input. Please enter a positive number.", flush=True)
+        score = mu.average(r2_score_across_folds)
 
-def get_user_no_workers_selection():
-    while True:
-        user_input = input("\nEnter the number of workers you want SMAC to use to run the optimization or \"exit\" to exit: ").strip()
+    elif model == 'extratrees':
+        r2_score_across_folds = et.pipelined_model(
+            dataset_name=dataset_name,
+            n_estimators=int(budget),
+            max_depth=(None if config['max_depth_et'] == 'None' else config['max_depth_et']),
+            min_samples_leaf=config['min_samples_leaf_et'],
+            max_features=float(config['max_features_et']),
+            seed=seed
+        )
 
-        if user_input.isdigit():
-            choice = int(user_input)
-            if choice > 0:
-                print("No. of workers selected: ", choice, flush=True)
-                return choice
-        if user_input.lower() == 'exit':
-            print("\nExiting...", flush=True)
-            return None
-        print("Invalid input. Please enter a positive number.", flush=True)
+        score = mu.average(r2_score_across_folds)
 
-if __name__ == '__main__':
+    elif model == 'hgb':
+        r2_score_across_folds = hgb.pipelined_model(
+            dataset_name=dataset_name,
+            max_iter=int(budget),
+            learning_rate=config['learning_rate_hgb'],
+            max_leaf_nodes=config['max_leaf_nodes_hgb'],
+            min_samples_leaf=config['min_samples_leaf_hgb'],
+            l2_reg=config['l2_reg_hgb'],
+            max_features=float(config['max_features_hgb']),
+            max_bins=config['max_bins_hgb'],
+            seed=seed
+        )
 
-    dataset_name = get_user_dataset_selection()
-    n_trials = get_user_no_trials_selection()
-    n_workers = get_user_no_workers_selection()
+        score = mu.average(r2_score_across_folds)
 
-    if dataset_name and n_trials and n_workers:
+    elif model == 'pfn':
+        _, __, ___, r2_score = pfn.train(
+            dataset_name=dataset_name,
+            seed=seed,
+        )
 
-        incumbent, default_cost, incumbent_cost = main(dataset_name, n_trials=n_trials, n_workers=n_workers)
+        score = r2_score
 
-        print(f"Incumbent configuration: {incumbent}", flush=True)
-        print(f"R2 Score of baseline (default) configuration: {1-default_cost:.4f}", flush=True)
-        print(f"R2 Score of incumbent configuration: {1-incumbent_cost:.4f}", flush=True)
+    print(
+        f"[RESULT][PID {os.getpid()}] "
+        f"Model={mu.MODELS[model]}, "
+        f"R2={score:.4f}\n"
+        f"Configuration: {config}",
+        flush=True
+    )
+
+    return 1 - score
+
+def run_mf_optimizer(dataset_name, n_trials, n_workers, walltime_limit):
+
+    train_function = partial(
+        mfo_train,
+        dataset_name=dataset_name
+    )
+
+    scenario = Scenario(
+        configspace=configspace,
+        name=f'smac_mf_optim_{dataset_name}',
+        output_directory=Path(__file__).resolve().parent / 'outputs' / 'multi-fidelity',
+        n_trials=n_trials,
+        n_workers=n_workers,
+        walltime_limit=walltime_limit,
+        deterministic=True,
+        min_budget=50,
+        max_budget=1000
+    )
+
+    smac = MFFacade(scenario=scenario, target_function=train_function)
+
+    incumbent = smac.optimize()
+
+    return smac, incumbent
+
+
