@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 
 import smac_optim as optim
+
 import train_and_test as tt
 
 if __name__=='__main__':
@@ -94,8 +95,3 @@ if __name__=='__main__':
             n_workers=args.hpo_workers,
             walltime_limit=args.hpo_timeout
         )
-
-
-
-
-

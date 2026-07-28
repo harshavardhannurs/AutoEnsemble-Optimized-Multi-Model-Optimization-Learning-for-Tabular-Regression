@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 from functools import partial
 
@@ -14,6 +15,7 @@ import models.extratrees as et
 import models.hgb as hgb
 
 import utils.model_utils as mu
+import utils.optim_utils as ou
 
 # Hyperparameters
 
@@ -224,7 +226,12 @@ def run_hp_optimizer(dataset_name, n_trials, n_workers, walltime_limit):
 
     smac = HPOFacade(scenario=scenario, target_function=train_function)
 
+    start_time = time.perf_counter()
     incumbent = smac.optimize()
+    time_taken = time.perf_counter() - start_time
+
+    path = Path(__file__).resolve().parent / 'outputs' / 'hpo'
+    ou.log_execution_time(dataset_name, time_taken, path)
 
     return smac, incumbent
 
@@ -346,8 +353,12 @@ def run_mf_optimizer(dataset_name, n_trials, n_workers, walltime_limit):
 
     smac = MFFacade(scenario=scenario, target_function=train_function)
 
+    start_time = time.perf_counter()
     incumbent = smac.optimize()
+    time_taken = time.perf_counter() - start_time
 
+    path = Path(__file__).resolve().parent / 'outputs' / 'multi-fidelity'
+    ou.log_execution_time(dataset_name, time_taken, path)
     return smac, incumbent
 
 
