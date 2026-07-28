@@ -117,20 +117,42 @@ def pipelined_model(
 
     return r2_score_across_folds
 
-if __name__ == '__main__':
-    r2_score_across_folds = pipelined_model(
-        dataset_name='bike_sharing_demand',
-        max_iter=100,
-        learning_rate=0.01,
-        max_leaf_nodes=10,
-        min_samples_leaf=2,
-        l2_reg=0.1,
-        max_features=0.7,
-        max_bins=255,
+def train(
+        dataset_name,
+        model_hps,
         seed=42
+):
+
+    max_iter, learning_rate, max_leaf_nodes, min_samples_leaf, l2_reg, max_features, max_bins = model_hps
+
+    X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
+    transformer_X, _ = du.data_transformer(X_train, y_train, scale_numeric=False, impute_missing=False)
+    X_train = du.to_dense(transformer_X.fit_transform(X_train))
+    X_test = du.to_dense(transformer_X.transform(X_test))
+    y_train = y_train.values.ravel()
+    y_test = y_test.values.ravel()
+
+    model = setup_model(
+        max_iter=max_iter,
+        learning_rate=learning_rate,
+        max_leaf_nodes=max_leaf_nodes,
+        min_samples_leaf=min_samples_leaf,
+        l2_reg=l2_reg,
+        max_features=max_features,
+        max_bins=max_bins,
+        seed=seed
     )
 
-    print("The current hyperparameter configuration for Histogram Gradient Boosting yields an average R2 Score of",
-          mu.average(r2_score_across_folds))
+    print('Training the model...')
+    model.fit(X_train, y_train)
 
+    print('Evaluating the model on test set...')
+    y_hat = model.predict(X_test)
+
+    r2_score = mu.get_r2_score(y_test, y_hat)
+
+    return model, y_test, y_hat, r2_score
+
+if __name__ == '__main__':
+    pass
 

@@ -12,6 +12,8 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 
+DATASET_DICT = {1: 'bike_sharing_demand', 2: 'brazilian_houses', 3: 'superconductivity', 4: 'wine_quality', 5: 'yprop_4_1'}
+
 def get_combined_dataset(dataset_name):
 
     """

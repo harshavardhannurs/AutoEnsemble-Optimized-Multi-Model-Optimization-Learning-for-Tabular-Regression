@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 
 import torch
@@ -12,7 +10,6 @@ from sklearn.model_selection import KFold
 
 import utils.data_utils as du
 import utils.model_utils as mu
-from utils.feature_engineering import FeatureAugmenter
 
 def prepare_data(dataset_name, seed=42):
 
@@ -111,10 +108,7 @@ def run_cv(
         y_train_fold = y_train.iloc[train_indices]
         y_val_fold = y_train.iloc[val_indices]
 
-        feature_augmenter = FeatureAugmenter()
-        X_train_fold = feature_augmenter.fit_transform(X_train_fold)
-        X_val_fold = feature_augmenter.transform(X_val_fold)
-
+        # Now apply the transformation
         transformer_X, transformer_y = du.data_transformer(X_train_fold, y_train_fold)
 
         X_train_fold = transformer_X.fit_transform(X_train_fold)
@@ -122,6 +116,11 @@ def run_cv(
 
         y_train_fold = transformer_y.fit_transform(y_train_fold)
         y_val_fold = transformer_y.transform(y_val_fold)
+
+        X_train_fold = du.to_dense(X_train_fold)
+        X_val_fold = du.to_dense(X_val_fold)
+        y_train_fold = du.to_dense(y_train_fold).ravel()
+        y_val_fold = du.to_dense(y_val_fold).ravel()
 
         no_of_feats = X_train_fold.shape[1]
 
@@ -210,7 +209,7 @@ def run_cv(
             f"R2={r2_score_across_folds[i]:.4f}"
         )
 
-    return train_loss_across_folds, val_loss_across_folds, r2_score_across_folds
+    return r2_score_across_folds
 
 def pipelined_model(
         dataset_name,
@@ -227,7 +226,7 @@ def pipelined_model(
 
     X_train, X_test, y_train, y_test  = prepare_data(dataset_name, seed=seed)
 
-    train_loss_across_folds, val_loss_across_folds, r2_score_across_folds = run_cv(
+    r2_score_across_folds = run_cv(
         X_train=X_train,
         y_train=y_train,
         model_hps=(no_of_layers, no_of_units, learning_rate, weight_decay, batch_norm),
@@ -237,22 +236,74 @@ def pipelined_model(
         seed=seed
     )
 
-    return train_loss_across_folds, val_loss_across_folds, r2_score_across_folds
+    return r2_score_across_folds
 
-if __name__ == '__main__':
-    train_loss_across_folds, val_loss_across_folds, r2_score_across_folds = pipelined_model(
-        dataset_name='bike_sharing_demand',
-        batch_size=64,
-        no_of_layers=2,
-        no_of_units=128,
-        learning_rate=0.001,
-        weight_decay=0.001,
-        batch_norm=False,
-        num_epochs=50,
-        n_splits=5,
+def train(
+        dataset_name,
+        model_hps,
         seed=42
+):
+
+    batch_size, learning_rate, no_of_layers, no_of_units, weight_decay, batch_norm, num_epochs = model_hps
+
+    X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
+    transformer_X, transformer_y = du.data_transformer(X_train, y_train)
+    X_train = transformer_X.fit_transform(X_train)
+    X_test = transformer_X.transform(X_test)
+    y_train = transformer_y.fit_transform(y_train)
+    y_test = transformer_y.transform(y_test)
+
+    no_of_feats = X_train.shape[1]
+
+    train_ldr = du.get_dataloader(X_train, y_train, batch_size=batch_size)
+    test_ldr = du.get_dataloader(X_test, y_test, is_test=True)
+
+    model, optimizer, loss_function = setup_model(
+        no_of_feats=no_of_feats,
+        no_of_layers=no_of_layers,
+        no_of_units=no_of_units,
+        learning_rate=learning_rate,
+        weight_decay=weight_decay,
+        batch_norm=batch_norm,
+        seed=seed
     )
 
-    mu.plot_losses(train_loss_across_folds, val_loss_across_folds)
+    device = mu.set_device()
 
-    print("The current hyperparameter configuration for FFN yields an average R2 Score of", mu.average(r2_score_across_folds))
+    model.to(device)
+    model.train()
+    print('Training the model...')
+    for epochi in range(num_epochs):
+
+        for X, y in train_ldr:
+            X = X.to(device)
+            y = y.to(device)
+
+            y_hat = model(X)
+
+            loss = loss_function(y_hat, y)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+    # Now use the trained model to make predictions on the test set
+
+    print('Evaluating the model on test set...')
+    model.eval()
+
+    with torch.no_grad():
+        X, y = next(iter(test_ldr))
+        X = X.to(device)
+        y = y.to(device)
+
+        y_hat = model(X)
+
+        y, y_hat = mu.get_predictions(y.cpu().numpy(), y_hat.cpu().numpy(), transformer_y)
+
+        r2_score = mu.get_r2_score(y, y_hat)
+
+    return model, y, y_hat, r2_score
+
+if __name__ == '__main__':
+    pass
