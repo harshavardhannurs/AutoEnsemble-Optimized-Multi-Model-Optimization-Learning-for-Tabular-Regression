@@ -54,6 +54,8 @@ l2_reg_hgb = Float('l2_reg_hgb', (1e-3, 100), default=1e-3, log=True)
 max_features_hgb = Categorical('max_features_hgb', [0.3, 0.5, 0.7, 1.0], default=1.0)
 max_bins_hgb = Categorical('max_bins_hgb', [64, 128, 255], default=255)
 
+n_estimators_pfn = Categorical('n_estimators_pfn', [4, 8, 16], default=8)
+
 # Conditions
 cond_ffn_1 = EqualsCondition(batch_size, model, 'ffn')
 cond_ffn_2 = EqualsCondition(no_of_layers, model, 'ffn')
@@ -88,6 +90,8 @@ cond_hgb_5 = EqualsCondition(l2_reg_hgb, model, 'hgb')
 cond_hgb_6 = EqualsCondition(max_features_hgb, model, 'hgb')
 cond_hgb_7 = EqualsCondition(max_bins_hgb, model, 'hgb')
 
+cond_pfn_1 = EqualsCondition(n_estimators_pfn, model, 'pfn')
+
 # Create Configuration Space
 configspace = ConfigurationSpace()
 
@@ -97,7 +101,8 @@ configspace.add([
     n_estimators_xgb, learning_rate_xgb, max_depth_xgb, subsample, colsample_bytree, reg_lambda,
     n_estimators_rf, max_depth_rf, min_samples_leaf_rf, max_features_rf,
     n_estimators_et, max_depth_et, min_samples_leaf_et, max_features_et,
-    max_iter_hgb, learning_rate_hgb, max_leaf_nodes_hgb, min_samples_leaf_hgb, l2_reg_hgb, max_features_hgb, max_bins_hgb
+    max_iter_hgb, learning_rate_hgb, max_leaf_nodes_hgb, min_samples_leaf_hgb, l2_reg_hgb, max_features_hgb, max_bins_hgb,
+    n_estimators_pfn
 ])
 
 configspace.add([
@@ -105,7 +110,8 @@ configspace.add([
     cond_xgb_1, cond_xgb_2, cond_xgb_3, cond_xgb_4, cond_xgb_5, cond_xgb_6,
     cond_rf_1, cond_rf_2, cond_rf_3, cond_rf_4,
     cond_et_1, cond_et_2, cond_et_3, cond_et_4,
-    cond_hgb_1, cond_hgb_2, cond_hgb_3, cond_hgb_4, cond_hgb_5, cond_hgb_6, cond_hgb_7
+    cond_hgb_1, cond_hgb_2, cond_hgb_3, cond_hgb_4, cond_hgb_5, cond_hgb_6, cond_hgb_7,
+    cond_pfn_1
 ])
 
 def hpo_train(config, seed, dataset_name=None):
@@ -188,12 +194,13 @@ def hpo_train(config, seed, dataset_name=None):
         score = mu.average(r2_score_across_folds)
 
     elif model == 'pfn':
-        _, __, ___, r2_score = pfn.train(
+        r2_score_across_folds = pfn.pipelined_model(
             dataset_name=dataset_name,
-            seed=seed,
+            n_estimators=config['n_estimators_pfn'],
+            seed=seed
         )
 
-        score = r2_score
+        score = mu.average(r2_score_across_folds)
 
     print(
         f"[RESULT][PID {os.getpid()}] "
@@ -315,12 +322,13 @@ def mfo_train(config, seed, budget, dataset_name=None):
         score = mu.average(r2_score_across_folds)
 
     elif model == 'pfn':
-        _, __, ___, r2_score = pfn.train(
+        r2_score_across_folds = pfn.pipelined_model(
             dataset_name=dataset_name,
+            n_estimators=config['n_estimators_pfn'],
             seed=seed,
         )
 
-        score = r2_score
+        score = mu.average(r2_score_across_folds)
 
     print(
         f"[RESULT][PID {os.getpid()}] "

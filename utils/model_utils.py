@@ -36,19 +36,16 @@ def plot_losses(train_loss_across_folds, val_loss_across_folds):
 
     plt.show()
 
-def get_predictions(y, y_hat, transformer_y):
+def inverse_transform_target(y, transformer):
 
-    if y_hat.ndim == 1:
-        y_hat = y_hat.reshape(-1, 1)
+    """
+    Inverse transformers the target from standard scaler to the original scale. (Mostly used for FFN )
+    """
+
     if y.ndim == 1:
         y = y.reshape(-1, 1)
 
-    # inverse_transformers_ expects the arrays to be 2D
-
-    y = transformer_y.named_transformers_['scaler'].inverse_transform(y)
-    y_hat = transformer_y.named_transformers_['scaler'].inverse_transform(y_hat)
-
-    return y.flatten(), y_hat.flatten()
+    return transformer.named_transformers_['scaler'].inverse_transform(y).flatten()
 
 def average(X):
 

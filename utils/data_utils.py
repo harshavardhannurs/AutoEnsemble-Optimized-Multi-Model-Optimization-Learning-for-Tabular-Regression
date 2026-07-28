@@ -12,7 +12,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 
-DATASET_DICT = {1: 'bike_sharing_demand', 2: 'brazilian_houses', 3: 'superconductivity', 4: 'wine_quality', 5: 'yprop_4_1'}
+DATASET_DICT = {1: 'bike_sharing_demand', 2: 'brazilian_houses', 3: 'superconductivity', 4: 'wine_quality', 5: 'yprop_4_1', 6: 'exam_dataset'}
 
 def get_combined_dataset(dataset_name):
 
@@ -60,7 +60,91 @@ def get_combined_dataset(dataset_name):
 
     dataset = dataset.drop_duplicates().reset_index(drop=True)
 
-    return dataset
+    return eng_features(dataset_name, dataset)
+
+def get_exam_train_data():
+
+    """
+    Returns X_train and y_train dataframes for the exam dataset.
+    """
+
+    path = Path(__file__).resolve().parent.parent / 'data' / 'exam_dataset' / '1'
+
+    X_train = pd.read_parquet(path/'X_train.parquet').reset_index(drop=True)
+    y_train = pd.read_parquet(path/'y_train.parquet').reset_index(drop=True)
+
+    if isinstance(y_train, pd.Series):
+        y_train = y_train.to_frame()
+
+    if y_train.shape[1] == 1:
+        y_train.columns = ['target']
+
+    return X_train, y_train
+
+def get_exam_test_data():
+
+    """
+    Returns X_test dataframe for the exam dataset.
+    """
+
+    path = Path(__file__).resolve().parent.parent / 'data' / 'exam_dataset' / '1'
+
+    X_test = pd.read_parquet(path/'X_test.parquet').reset_index(drop=True)
+
+    return X_test
+
+def eng_features(dataset_name, df):
+
+    """
+    Returns a DataFrame with generic and dataset-specific engineered features.
+    """
+
+    # Generic engineering features
+    df['mean'] = df.mean(axis=1, numeric_only=True)
+    df['std'] = df.std(axis=1, numeric_only=True)
+    df['min'] = df.min(axis=1, numeric_only=True)
+    df['max'] = df.max(axis=1, numeric_only=True)
+
+    # Dataset-specific engineering features
+
+    if dataset_name == DATASET_DICT[1]:
+
+        # bike_sharing_demand
+        df['wind_chill_effect'] = df['windspeed'] * df['temp']
+        df['temp_difference'] = df['feel_temp'] - df['temp']
+
+    elif dataset_name == DATASET_DICT[2]:
+
+        # brazilian_houses
+        df['rooms_per_area'] = df['rooms'] / df['area']
+        df['bathrooms_per_area'] = df['bathroom'] / df['area']
+        df['parking_per_area'] = df['parking_spaces'] / df['area']
+        df['hoa_per_area(BRL)'] = df['hoa_(BRL)'] / df['area']
+        df['tax_per_area(BRL)'] = df['property_tax_(BRL)'] / df['area']
+
+    elif dataset_name == DATASET_DICT[3]:
+
+        # superconductivity
+        df['atomic_mass_shift'] = df['wtd_mean_atomic_mass'] - df['mean_atomic_mass']
+        df['fie_shift'] = df['wtd_mean_fie'] - df['mean_fie']
+        df['radius_shift'] = df['wtd_mean_atomic_radius'] - df['mean_atomic_radius']
+        df['density_shift'] = df['wtd_mean_Density'] - df['mean_Density']
+        df['valence_shift'] = df['wtd_mean_Valence'] - df['mean_Valence']
+        df['atomic_mass_variability'] = df['std_atomic_mass'] / df['mean_atomic_mass']
+        df['radius_variability'] = df['std_atomic_radius'] / df['mean_atomic_radius']
+        df['density_variability'] = df['std_Density'] / df['mean_Density']
+
+    elif dataset_name == DATASET_DICT[4]:
+
+        # wine_quality
+        df['total_acidity'] = df['fixed_acidity'] + df['volatile_acidity'] + df['citric_acid']
+        df['sugar_alcohol_ratio'] = df['residual_sugar'] / df['alcohol']
+        df['free_sulfur_dioxide_ratio'] = df['free_sulfur_dioxide'] / df['total_sulfur_dioxide']
+        df['density_alcohol_interaction'] = df['density'] * df['alcohol']
+
+    # For yprop_4_1 and exam dataset, we couldn't add any new columns due to non-meaningful feature names.
+
+    return df
 
 def split_features_and_target(df, target_column='target'):
 

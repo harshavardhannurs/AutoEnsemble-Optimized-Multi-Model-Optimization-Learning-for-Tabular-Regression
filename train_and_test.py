@@ -28,9 +28,7 @@ def train_model(dataset_name, seed, path):
                     config.get('num_epochs')
                 )
 
-                m, y, y_hat, r2_score = ffn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
-
-                print(f"FFN yields an average R2 Score of ", r2_score)
+                m, y_hat = ffn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
 
             case 'xgb':
 
@@ -43,9 +41,7 @@ def train_model(dataset_name, seed, path):
                     config.get('reg_lambda')
                 )
 
-                m, y, y_hat, r2_score = xgb.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
-
-                print(f"XGB yields an average R2 Score of ", r2_score)
+                m, y_hat = xgb.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
 
             case 'randomforest':
 
@@ -56,15 +52,11 @@ def train_model(dataset_name, seed, path):
                     config.get('max_features_rf')
                 )
 
-                m, y, y_hat, r2_score = rf.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
-
-                print(f"Random Forest yields an average R2 Score of ", r2_score)
+                m, y_hat = rf.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
 
             case 'pfn':
 
-                m, y, y_hat, r2_score = pfn.train(dataset_name=dataset_name, seed=seed)
-
-                print(f"TabPFN yields an average R2 Score of ", r2_score)
+                m, y_hat = pfn.train(dataset_name=dataset_name, seed=seed)
 
             case 'extratrees':
 
@@ -75,9 +67,7 @@ def train_model(dataset_name, seed, path):
                     config.get('max_features_et')
                 )
 
-                m, y, y_hat, r2_score = et.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
-
-                print(f"Extratrees yields an average R2 Score of ", r2_score)
+                m, y_hat = et.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
 
             case 'hgb':
 
@@ -91,23 +81,19 @@ def train_model(dataset_name, seed, path):
                     config.get('max_bins_hgb')
                 )
 
-                m, y, y_hat, r2_score = hgb.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
-
-                print(f"HGB yields an average R2 Score of ", r2_score)
+                m, y_hat = hgb.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
 
             case _:
                 raise ValueError(f"Unsupported model type: {model}")
 
         np.save(path, y_hat)
 
-    except (KeyError, FileNotFoundError, ValueError) as e:
-
         print(
-            f"Failed to load or match configuration ({e}). " 
-            "Training with the baseline model FFN... "
-            "NOTE: This may lead to suboptimal results. " 
-            "Please consider running the SMAC optimizer to find the best configuration first and then run the model. "
-              , flush=True)
+            "Model trained successfully. "
+            "Predictions saved at ", path
+        )
+
+    except (KeyError, FileNotFoundError, ValueError) as e:
 
         base_config = {
             'batch_size': 64,
@@ -119,6 +105,13 @@ def train_model(dataset_name, seed, path):
             'num_epochs': 50
         }
 
+        print(
+            f"Failed to load or match configuration ({e}). " 
+            f"Training with the baseline model FFN with default parameters {base_config}... "
+            "NOTE: This may lead to suboptimal results. " 
+            "Please consider running the SMAC optimizer to find the best configuration first and then run the model. "
+              , flush=True)
+
         model_hps = (
             base_config.get('batch_size'),
             base_config.get('learning_rate_ffn'),
@@ -129,8 +122,8 @@ def train_model(dataset_name, seed, path):
             base_config.get('num_epochs')
         )
 
-        m, y, y_hat, r2_score = ffn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+        m, y_hat =  ffn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
 
         np.save(path, np.asarray(y_hat))
 
-        print(f"The baseline hyperparameter configuration {base_config} for FFN yields an average R2 Score of", r2_score)
+        print("Predictions saved at ", path)

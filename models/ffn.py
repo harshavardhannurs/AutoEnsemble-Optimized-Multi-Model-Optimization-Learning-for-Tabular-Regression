@@ -196,7 +196,8 @@ def run_cv(
 
             y_val_hat = model(X_val)
 
-        y, y_hat = mu.get_predictions(y_val.cpu().numpy(), y_val_hat.cpu().numpy(), transformer_y)
+        y = mu.inverse_transform_target(y_val.cpu().numpy(), transformer_y)
+        y_hat = mu.inverse_transform_target(y_val_hat.cpu().numpy(), transformer_y)
 
         r2_score_across_folds[i] = mu.get_r2_score(y, y_hat)
 
@@ -224,7 +225,10 @@ def pipelined_model(
         seed=42
 ):
 
-    X_train, X_test, y_train, y_test  = prepare_data(dataset_name, seed=seed)
+    if dataset_name != du.DATASET_DICT[6]:
+        X_train, _, y_train, _ = prepare_data(dataset_name, seed=seed)
+    else:
+        X_train, y_train = du.get_exam_train_data()
 
     r2_score_across_folds = run_cv(
         X_train=X_train,
@@ -246,17 +250,21 @@ def train(
 
     batch_size, learning_rate, no_of_layers, no_of_units, weight_decay, batch_norm, num_epochs = model_hps
 
-    X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
+    if dataset_name != du.DATASET_DICT[6]:
+        X_train, X_test, y_train, _ = prepare_data(dataset_name, seed=seed)
+    else:
+        X_train, y_train = du.get_exam_train_data()
+        X_test = du.get_exam_test_data()
+
     transformer_X, transformer_y = du.data_transformer(X_train, y_train)
-    X_train = transformer_X.fit_transform(X_train)
-    X_test = transformer_X.transform(X_test)
+    X_train = du.to_dense(transformer_X.fit_transform(X_train))
+    X_test = du.to_dense(transformer_X.transform(X_test))
     y_train = transformer_y.fit_transform(y_train)
-    y_test = transformer_y.transform(y_test)
 
     no_of_feats = X_train.shape[1]
 
     train_ldr = du.get_dataloader(X_train, y_train, batch_size=batch_size)
-    test_ldr = du.get_dataloader(X_test, y_test, is_test=True)
+    X_test = du.to_tensor(X_test)
 
     model, optimizer, loss_function = setup_model(
         no_of_feats=no_of_feats,
@@ -293,17 +301,13 @@ def train(
     model.eval()
 
     with torch.no_grad():
-        X, y = next(iter(test_ldr))
-        X = X.to(device)
-        y = y.to(device)
+        X_test = X_test.to(device)
 
-        y_hat = model(X)
+        y_hat = model(X_test)
 
-        y, y_hat = mu.get_predictions(y.cpu().numpy(), y_hat.cpu().numpy(), transformer_y)
+    y_hat = mu.inverse_transform_target(y_hat.cpu().numpy(), transformer_y)
 
-        r2_score = mu.get_r2_score(y, y_hat)
-
-    return model, y, y_hat, r2_score
+    return model, y_hat
 
 if __name__ == '__main__':
     pass

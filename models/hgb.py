@@ -103,7 +103,11 @@ def pipelined_model(
         n_splits=10,
         seed=42
 ):
-    X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
+
+    if dataset_name != du.DATASET_DICT[6]:
+        X_train, _, y_train, _ = prepare_data(dataset_name, seed=seed)
+    else:
+        X_train, y_train = du.get_exam_train_data()
 
     model_hps = (max_iter, learning_rate, max_leaf_nodes, min_samples_leaf, l2_reg, max_features, max_bins)
 
@@ -125,12 +129,16 @@ def train(
 
     max_iter, learning_rate, max_leaf_nodes, min_samples_leaf, l2_reg, max_features, max_bins = model_hps
 
-    X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
+    if dataset_name != du.DATASET_DICT[6]:
+        X_train, X_test, y_train, _ = prepare_data(dataset_name, seed=seed)
+    else:
+        X_train, y_train = du.get_exam_train_data()
+        X_test = du.get_exam_test_data()
+
     transformer_X, _ = du.data_transformer(X_train, y_train, scale_numeric=False, impute_missing=False)
     X_train = du.to_dense(transformer_X.fit_transform(X_train))
     X_test = du.to_dense(transformer_X.transform(X_test))
     y_train = y_train.values.ravel()
-    y_test = y_test.values.ravel()
 
     model = setup_model(
         max_iter=max_iter,
@@ -149,9 +157,7 @@ def train(
     print('Evaluating the model on test set...')
     y_hat = model.predict(X_test)
 
-    r2_score = mu.get_r2_score(y_test, y_hat)
-
-    return model, y_test, y_hat, r2_score
+    return model, y_hat
 
 if __name__ == '__main__':
     pass
