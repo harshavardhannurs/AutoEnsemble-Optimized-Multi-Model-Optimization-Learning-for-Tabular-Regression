@@ -62,13 +62,13 @@ def run_cv(
         # Evaluate the model on the validation set
         y_hat = model.predict(X_val_fold)
 
+        r2_score_across_folds[i] = mu.get_r2_score(y_val_fold, y_hat)
+
         print(
             f"[CV][Split {i + 1}] "
             f"Model=TabPFN, "
             f"R2={r2_score_across_folds[i]:.4f}"
         )
-
-        r2_score_across_folds[i] = mu.get_r2_score(y_val_fold, y_hat)
 
     return r2_score_across_folds
 
