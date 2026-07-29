@@ -99,7 +99,13 @@ def eng_features(dataset_name, df):
     Returns a DataFrame with generic and dataset-specific engineered features.
     """
 
+    df = df.copy()
+
     # Generic engineering features
+
+    target_column = df['target']
+    df = df.drop(columns=['target'])
+
     df['mean'] = df.mean(axis=1, numeric_only=True)
     df['std'] = df.std(axis=1, numeric_only=True)
     df['min'] = df.min(axis=1, numeric_only=True)
@@ -143,6 +149,8 @@ def eng_features(dataset_name, df):
         df['density_alcohol_interaction'] = df['density'] * df['alcohol']
 
     # For yprop_4_1 and exam dataset, we couldn't add any new columns due to non-meaningful feature names.
+
+    df = pd.concat([df, target_column], axis=1)
 
     return df
 
