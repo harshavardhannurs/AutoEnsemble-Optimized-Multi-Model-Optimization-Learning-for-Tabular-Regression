@@ -122,11 +122,11 @@ def eng_features(dataset_name, df):
     elif dataset_name == DATASET_DICT[2]:
 
         # brazilian_houses
-        df['rooms_per_area'] = df['rooms'] / df['area']
-        df['bathrooms_per_area'] = df['bathroom'] / df['area']
-        df['parking_per_area'] = df['parking_spaces'] / df['area']
-        df['hoa_per_area(BRL)'] = df['hoa_(BRL)'] / df['area']
-        df['tax_per_area(BRL)'] = df['property_tax_(BRL)'] / df['area']
+        df['rooms_per_area'] = df['rooms'] / df['area'].replace(0, np.nan)
+        df['bathrooms_per_area'] = df['bathroom'] / df['area'].replace(0, np.nan)
+        df['parking_per_area'] = df['parking_spaces'] / df['area'].replace(0, np.nan)
+        df['hoa_per_area(BRL)'] = df['hoa_(BRL)'] / df['area'].replace(0, np.nan)
+        df['tax_per_area(BRL)'] = df['property_tax_(BRL)'] / df['area'].replace(0, np.nan)
 
     elif dataset_name == DATASET_DICT[3]:
 
@@ -136,16 +136,16 @@ def eng_features(dataset_name, df):
         df['radius_shift'] = df['wtd_mean_atomic_radius'] - df['mean_atomic_radius']
         df['density_shift'] = df['wtd_mean_Density'] - df['mean_Density']
         df['valence_shift'] = df['wtd_mean_Valence'] - df['mean_Valence']
-        df['atomic_mass_variability'] = df['std_atomic_mass'] / df['mean_atomic_mass']
-        df['radius_variability'] = df['std_atomic_radius'] / df['mean_atomic_radius']
-        df['density_variability'] = df['std_Density'] / df['mean_Density']
+        df['atomic_mass_variability'] = df['std_atomic_mass'] / df['mean_atomic_mass'].replace(0, np.nan)
+        df['radius_variability'] = df['std_atomic_radius'] / df['mean_atomic_radius'].replace(0, np.nan)
+        df['density_variability'] = df['std_Density'] / df['mean_Density'].replace(0, np.nan)
 
     elif dataset_name == DATASET_DICT[4]:
 
         # wine_quality
         df['total_acidity'] = df['fixed_acidity'] + df['volatile_acidity'] + df['citric_acid']
-        df['sugar_alcohol_ratio'] = df['residual_sugar'] / df['alcohol']
-        df['free_sulfur_dioxide_ratio'] = df['free_sulfur_dioxide'] / df['total_sulfur_dioxide']
+        df['sugar_alcohol_ratio'] = df['residual_sugar'] / df['alcohol'].replace(0, np.nan)
+        df['free_sulfur_dioxide_ratio'] = df['free_sulfur_dioxide'] / df['total_sulfur_dioxide'].replace(0, np.nan)
         df['density_alcohol_interaction'] = df['density'] * df['alcohol']
 
     # For yprop_4_1 and exam dataset, we couldn't add any new columns due to non-meaningful feature names.
