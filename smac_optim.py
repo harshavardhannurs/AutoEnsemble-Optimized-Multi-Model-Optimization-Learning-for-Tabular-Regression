@@ -237,7 +237,7 @@ def run_hp_optimizer(dataset_name, n_trials, n_workers, walltime_limit):
     incumbent = smac.optimize()
     time_taken = time.perf_counter() - start_time
 
-    path = Path(__file__).resolve().parent / 'outputs' / 'hpo'
+    path = Path(__file__).resolve().parent / 'outputs' / 'hpo' / 'optim_exec_times.txt'
     ou.log_execution_time(dataset_name, time_taken, path)
 
     return smac, incumbent
@@ -365,7 +365,7 @@ def run_mf_optimizer(dataset_name, n_trials, n_workers, walltime_limit):
     incumbent = smac.optimize()
     time_taken = time.perf_counter() - start_time
 
-    path = Path(__file__).resolve().parent / 'outputs' / 'multi-fidelity'
+    path = Path(__file__).resolve().parent / 'outputs' / 'multi-fidelity' / 'optim_exec_times.txt'
     ou.log_execution_time(dataset_name, time_taken, path)
     return smac, incumbent
 

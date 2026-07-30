@@ -115,7 +115,7 @@ def train(
     model = TabPFNRegressor(
         n_estimators=16, # recommended in the documentation
         ignore_pretraining_limits=True,
-        inference_config={
+        inference_config= {
             'SUBSAMPLE_SAMPLES': subsample_cap,
         },
         random_state=seed

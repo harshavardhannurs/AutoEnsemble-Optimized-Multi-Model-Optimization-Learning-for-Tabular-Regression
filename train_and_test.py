@@ -1,6 +1,6 @@
 import numpy as np
 
-import utils.optim_utils as ou
+import utils.train_utils as tu
 
 import models.ffn as ffn
 import models.randomforest as rf
@@ -9,108 +9,105 @@ import models.pfn as pfn
 import models.extratrees as et
 import models.hgb as hgb
 
-def train_model(dataset_name, seed, path):
+def train(dataset_name, seed, save_path):
 
     try:
-        config = ou.get_incumbent_config(dataset_name)
-        model = config.get('model')
+        top_configs_per_model = tu.get_top_configs_per_model(dataset_name=dataset_name)
+        best_configs = tu.get_best_configs(top_configs_per_model)
+        model_configs = tu.get_best_model_configs(best_configs)
 
-        match model:
-            case 'ffn':
+        predictions = []
 
-                model_hps = (
-                    config.get('batch_size'),
-                    config.get('learning_rate_ffn'),
-                    config.get('no_of_layers'),
-                    config.get('no_of_units'),
-                    config.get('weight_decay'),
-                    config.get('batch_norm'),
-                    config.get('num_epochs')
-                )
+        for config in model_configs:
 
-                m, y_hat = ffn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+            model_name = config['model']
 
-            case 'xgb':
+            match model_name:
+                case 'ffn':
+                    model_hps = (
+                        config.get('batch_size'),
+                        config.get('learning_rate_ffn'),
+                        config.get('no_of_layers'),
+                        config.get('no_of_units'),
+                        config.get('weight_decay'),
+                        config.get('batch_norm'),
+                        config.get('num_epochs')
+                    )
+                    m, y_hat = ffn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+                case 'xgb':
+                    model_hps = (
+                        config.get('n_estimators_xgb'),
+                        config.get('learning_rate_xgb'),
+                        config.get('max_depth_xgb'),
+                        config.get('subsample'),
+                        config.get('colsample_bytree'),
+                        config.get('reg_lambda')
+                    )
+                    m, y_hat = xgb.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+                case 'randomforest':
+                    model_hps = (
+                        config.get('n_estimators_rf'),
+                        config.get('max_depth_rf'),
+                        config.get('min_samples_leaf_rf'),
+                        config.get('max_features_rf')
+                    )
+                    m, y_hat = rf.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+                case 'pfn':
+                    m, y_hat = pfn.train(dataset_name=dataset_name, seed=seed)
+                case 'extratrees':
+                    model_hps = (
+                        config.get('n_estimators_et'),
+                        config.get('max_depth_et'),
+                        config.get('min_samples_leaf_et'),
+                        config.get('max_features_et')
+                    )
+                    m, y_hat = et.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+                case 'hgb':
+                    model_hps = (
+                        config.get('max_iter_hgb'),
+                        config.get('learning_rate_hgb'),
+                        config.get('max_leaf_nodes_hgb'),
+                        config.get('min_samples_leaf_hgb'),
+                        config.get('l2_reg_hgb'),
+                        config.get('max_features_hgb'),
+                        config.get('max_bins_hgb')
+                    )
+                    m, y_hat = hgb.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+                case _:
+                    raise ValueError(f"Unsupported model type: {model_name}")
 
-                model_hps = (
-                    config.get('n_estimators_xgb'),
-                    config.get('learning_rate_xgb'),
-                    config.get('max_depth_xgb'),
-                    config.get('subsample'),
-                    config.get('colsample_bytree'),
-                    config.get('reg_lambda')
-                )
+            predictions.append(y_hat)
 
-                m, y_hat = xgb.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+        # Now find the weighted average of predictions here
 
-            case 'randomforest':
+        predictions = np.array(predictions)
+        weights = tu.get_weights(best_configs)
 
-                model_hps = (
-                    config.get('n_estimators_rf'),
-                    config.get('max_depth_rf'),
-                    config.get('min_samples_leaf_rf'),
-                    config.get('max_features_rf')
-                )
+        y_hat_weighted_average = np.average(predictions, axis=0, weights=weights)
 
-                m, y_hat = rf.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+        # Save the predictions
+        np.save(save_path, y_hat_weighted_average)
 
-            case 'pfn':
+        print("Predictions saved at ", save_path)
 
-                m, y_hat = pfn.train(dataset_name=dataset_name, seed=seed)
-
-            case 'extratrees':
-
-                model_hps = (
-                    config.get('n_estimators_et'),
-                    config.get('max_depth_et'),
-                    config.get('min_samples_leaf_et'),
-                    config.get('max_features_et')
-                )
-
-                m, y_hat = et.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
-
-            case 'hgb':
-
-                model_hps = (
-                    config.get('max_iter_hgb'),
-                    config.get('learning_rate_hgb'),
-                    config.get('max_leaf_nodes_hgb'),
-                    config.get('min_samples_leaf_hgb'),
-                    config.get('l2_reg_hgb'),
-                    config.get('max_features_hgb'),
-                    config.get('max_bins_hgb')
-                )
-
-                m, y_hat = hgb.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
-
-            case _:
-                raise ValueError(f"Unsupported model type: {model}")
-
-        np.save(path, y_hat)
-
-        print(
-            "Model trained successfully. "
-            "Predictions saved at ", path
-        )
-
-    except (KeyError, FileNotFoundError, ValueError) as e:
+    except (FileNotFoundError, ValueError) as e:
 
         base_config = {
-            'batch_size': 64,
+            'batch_size': 32,
             'learning_rate_ffn': 1e-3,
-            'no_of_layers': 2,
-            'no_of_units': 32,
-            'weight_decay': 1e-4,
+            'no_of_layers': 3,
+            'no_of_units': 64,
+            'weight_decay': 1e-3,
             'batch_norm': False,
-            'num_epochs': 50
+            'num_epochs': 500
         }
 
         print(
-            f"Failed to load or match configuration ({e}). " 
+            f"Failed to load or match configuration ({e}). "
             f"Training with the baseline model FFN with default parameters {base_config}... "
-            "NOTE: This may lead to suboptimal results. " 
+            "NOTE: This may lead to suboptimal results. "
             "Please consider running the SMAC optimizer to find the best configuration first and then run the model. "
-              , flush=True)
+            , flush=True)
 
         model_hps = (
             base_config.get('batch_size'),
@@ -122,8 +119,8 @@ def train_model(dataset_name, seed, path):
             base_config.get('num_epochs')
         )
 
-        m, y_hat =  ffn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+        m, y_hat = ffn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
 
-        np.save(path, np.asarray(y_hat))
+        np.save(save_path, np.asarray(y_hat))
 
-        print("Predictions saved at ", path)
+        print("Predictions saved at ", save_path)
