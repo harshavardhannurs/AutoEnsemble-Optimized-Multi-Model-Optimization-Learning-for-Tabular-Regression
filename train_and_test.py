@@ -9,11 +9,11 @@ import models.pfn as pfn
 import models.extratrees as et
 import models.hgb as hgb
 
-def train(dataset_name, seed, save_path):
+def train(dataset_name, delta, temperature, save_path, seed):
 
     try:
         top_configs_per_model = tu.get_top_configs_per_model(dataset_name=dataset_name)
-        best_configs = tu.get_best_configs(top_configs_per_model)
+        best_configs = tu.get_best_configs(top_configs_per_model, delta=delta)
         model_configs = tu.get_best_model_configs(best_configs)
 
         predictions = []
@@ -84,7 +84,7 @@ def train(dataset_name, seed, save_path):
         # Now find the weighted average of predictions here
 
         predictions = np.array(predictions)
-        weights = tu.get_weights(best_configs)
+        weights = tu.get_weights(best_configs, temperature=temperature)
 
         print('Finding weighted average of predictions...')
 

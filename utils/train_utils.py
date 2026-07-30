@@ -45,12 +45,12 @@ def _extract_top_configs_per_model(path):
     except Exception as e:
         return None
 
-def get_best_configs(configs, threshold=0.003):
+def get_best_configs(configs, delta=0.003):
 
     best_configs = [configs[0]]
 
     for i in range(1, len(configs)):
-        if (configs[i]['cost'] - configs[0]['cost']) <= threshold:
+        if (configs[i]['cost'] - configs[0]['cost']) <= delta:
             best_configs.append(configs[i])
 
     return best_configs
@@ -85,10 +85,10 @@ def get_top_configs_per_model(dataset_name):
 
     return best_configs_1
 
-def get_weights(best_configs, T=0.01):
+def get_weights(best_configs, temperature=0.01):
 
     r2_scores = np.array([(1 - config['cost']) for config in best_configs])
-    scaled_scores = (r2_scores - np.max(r2_scores)) / T
+    scaled_scores = (r2_scores - np.max(r2_scores)) / temperature
     exp_scores = np.exp(scaled_scores)
 
     return exp_scores / np.sum(exp_scores)
