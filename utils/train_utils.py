@@ -9,24 +9,14 @@ def _extract_top_unique_data_configs(data):
     result = []
 
     for item in data:
+        if not item.get('config') or 'model' not in item['config']:
+            continue
+
         if item['config']['model'] not in seen:
             seen.add(item['config']['model'])
             result.append(item)
 
     return result
-
-def _extract_config_by_id(id, path):
-
-    if not path.is_file():
-        return None
-
-    try:
-        obj = json.loads(path.read_text(encoding='utf-8'))
-        configs = obj.get('configs', {})
-        return configs.get(str(id))
-
-    except Exception as e:
-        return None
 
 def _extract_top_configs_per_model(path):
 
@@ -34,15 +24,19 @@ def _extract_top_configs_per_model(path):
         return None
 
     try:
+
         obj = json.loads(path.read_text(encoding='utf-8'))
-        data = obj.get('data', [])
+        configs = obj.get('configs', {})
+        data = obj.get('data', [])[::-1] # Reverse the order to get the best configurations first (in MFO case)
 
         data_with_config_info = []
+
         for item in data:
-            item['config'] = _extract_config_by_id(item['config_id'], path)
+            config_id = str(item.get('config_id'))
+            item['config'] = configs.get(config_id)
             data_with_config_info.append(item)
 
-        data_with_config_info_st = sorted(data_with_config_info, key=lambda x: 1 - x['cost'], reverse=True)
+        data_with_config_info_st = sorted(data_with_config_info, key=lambda x: x.get('cost', float('inf')))
 
         result = _extract_top_unique_data_configs(data_with_config_info_st)
 
@@ -94,6 +88,7 @@ def get_top_configs_per_model(dataset_name):
 def get_weights(best_configs, T=0.01):
 
     r2_scores = np.array([(1 - config['cost']) for config in best_configs])
-    z = np.exp(r2_scores / T) / np.sum(np.exp(r2_scores / T))
+    scaled_scores = (r2_scores - np.max(r2_scores)) / T
+    exp_scores = np.exp(scaled_scores)
 
-    return z
+    return exp_scores / np.sum(exp_scores)

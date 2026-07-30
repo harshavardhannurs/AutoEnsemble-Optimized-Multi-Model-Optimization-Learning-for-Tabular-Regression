@@ -79,7 +79,7 @@ def get_exam_train_data():
     if y_train.shape[1] == 1:
         y_train.columns = ['target']
 
-    return X_train, y_train
+    return eng_exam_dataset_features(X_train), y_train
 
 def get_exam_test_data():
 
@@ -91,7 +91,46 @@ def get_exam_test_data():
 
     X_test = pd.read_parquet(path/'X_test.parquet').reset_index(drop=True)
 
-    return X_test
+    return eng_exam_dataset_features(X_test)
+
+def eng_exam_dataset_features(df):
+
+    df = df.copy()
+
+    df["living_area_ratio"] = df["TOT_LVG_AREA"] / df["LND_SQFOOT"].replace(0, np.nan)
+    df["unused_land"] = df["LND_SQFOOT"] - df["TOT_LVG_AREA"]
+    df["total_accessibility"] = (
+            df["RAIL_DIST"] +
+            df["HWY_DIST"] +
+            df["CNTR_DIST"]
+    )
+
+    c = df[[
+        "RAIL_DIST",
+        "OCEAN_DIST",
+        "WATER_DIST",
+        "CNTR_DIST",
+        "SUBCNTR_DI",
+        "HWY_DIST",
+    ]]
+
+    df["avg_distance"] = c.mean(axis=1)
+    df["closest_amenity"] = c.min(axis=1)
+    df["furthest_amenity"] = c.max(axis=1)
+    df["lat_long_interaction"] = (
+            df["LATITUDE"] * df["LONGITUDE"]
+    )
+    df["age_squared"] = df["age"] ** 2
+    df["quality_age"] = (
+            df["structure_quality"] /
+            (df["age"] + 1)
+    )
+    df["quality_area"] = (
+            df["structure_quality"] *
+            df["TOT_LVG_AREA"]
+    )
+
+    return df
 
 def eng_features(dataset_name, df):
 
@@ -148,7 +187,7 @@ def eng_features(dataset_name, df):
         df['free_sulfur_dioxide_ratio'] = df['free_sulfur_dioxide'] / df['total_sulfur_dioxide'].replace(0, np.nan)
         df['density_alcohol_interaction'] = df['density'] * df['alcohol']
 
-    # For yprop_4_1 and exam dataset, we couldn't add any new columns due to non-meaningful feature names.
+    # For yprop_4_1, we couldn't add any new columns due to non-meaningful feature names.
 
     df = pd.concat([df, target_column], axis=1)
 
