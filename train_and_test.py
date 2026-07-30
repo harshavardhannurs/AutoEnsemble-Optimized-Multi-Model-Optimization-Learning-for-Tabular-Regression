@@ -99,14 +99,14 @@ def train(dataset_name, seed, save_path):
             'no_of_units': 64,
             'weight_decay': 1e-3,
             'batch_norm': False,
-            'num_epochs': 500
+            'num_epochs': 300
         }
 
         print(
             f"Failed to load or match configuration ({e}). "
             f"Training with the baseline model FFN with default parameters {base_config}... "
             "NOTE: This may lead to suboptimal results. "
-            "Please consider running the SMAC optimizer to find the best configuration first and then run the model. "
+            "Please consider running the SMAC optimizer to find the best configuration first and then run the command. "
             , flush=True)
 
         model_hps = (

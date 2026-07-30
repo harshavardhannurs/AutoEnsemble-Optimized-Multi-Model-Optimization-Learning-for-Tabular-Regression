@@ -295,6 +295,9 @@ def train(
             loss.backward()
             optimizer.step()
 
+        if (epochi + 1) % 10 == 0:
+            print(f'Epoch {epochi + 1}/{num_epochs} completed')
+
     # Now use the trained model to make predictions on the test set
 
     print('Evaluating the model on test set...')
