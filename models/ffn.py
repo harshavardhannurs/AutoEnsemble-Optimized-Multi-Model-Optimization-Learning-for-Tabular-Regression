@@ -284,7 +284,7 @@ def train(
 
     model.to(device)
     model.train()
-    print('Training the model...')
+    print('Training FFN...')
     for epochi in range(num_epochs):
 
         for X, y in train_ldr:
@@ -304,7 +304,7 @@ def train(
 
     # Now use the trained model to make predictions on the test set
 
-    print('Evaluating the model on test set...')
+    print('Evaluating FFN on test set...')
     model.eval()
 
     with torch.no_grad():

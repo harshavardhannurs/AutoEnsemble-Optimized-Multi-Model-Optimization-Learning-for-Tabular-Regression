@@ -18,6 +18,9 @@ def train(dataset_name, seed, save_path):
 
         predictions = []
 
+        print('Top performing models were found to be: ', [config['model'] for config in model_configs])
+        print('Training these models with the best configurations found from SMAC optim files...')
+
         for config in model_configs:
 
             model_name = config['model']
@@ -82,6 +85,8 @@ def train(dataset_name, seed, save_path):
 
         predictions = np.array(predictions)
         weights = tu.get_weights(best_configs)
+
+        print('Finding weighted average of predictions...')
 
         y_hat_weighted_average = np.average(predictions, axis=0, weights=weights)
 

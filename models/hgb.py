@@ -154,10 +154,10 @@ def train(
         seed=seed
     )
 
-    print('Training the model...')
+    print('Training Histogram Gradient Boost...')
     model.fit(X_train, y_train)
 
-    print('Evaluating the model on test set...')
+    print('Evaluating Histogram Gradient Boost on test set...')
     y_hat = model.predict(X_test)
 
     return model, y_test, y_hat

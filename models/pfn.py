@@ -125,10 +125,10 @@ def train(
     )
     # To prevent OOM errors (during testing, TabPFN on MPS failed when training data size was approximately greater than 6000)
 
-    print('Training the model...')
+    print('Training TabPFN...')
     model.fit(X_train, y_train)
 
-    print('Evaluating the model on test set...')
+    print('Evaluating TabPFN on test set...')
 
     batch_size = 100
     y_hat_batch = []
