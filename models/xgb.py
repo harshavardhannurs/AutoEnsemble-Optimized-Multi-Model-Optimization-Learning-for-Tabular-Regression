@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from sklearn.model_selection import KFold
 
@@ -129,15 +130,17 @@ def train(
     n_estimators, learning_rate, max_depth, subsample, colsample_bytree, reg_lambda = model_hps
 
     if dataset_name != du.DATASET_DICT[6]:
-        X_train, X_test, y_train, _ = prepare_data(dataset_name, seed=seed)
+        X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
     else:
         X_train, y_train = du.get_exam_train_data()
         X_test = du.get_exam_test_data()
+        y_test = pd.DataFrame()
 
     transformer_X, _ = du.data_transformer(X_train, y_train, scale_numeric=False, impute_missing=False)
     X_train= du.to_dense(transformer_X.fit_transform(X_train))
     X_test= du.to_dense(transformer_X.transform(X_test))
     y_train = y_train.values.ravel()
+    y_test = y_test.values.ravel()
 
     model = setup_model(
         n_estimators=n_estimators,
@@ -155,7 +158,7 @@ def train(
     print('Evaluating the model on test set...')
     y_hat = model.predict(X_test)
 
-    return model, y_hat
+    return model, y_test, y_hat
 
 if __name__ == '__main__':
     pass

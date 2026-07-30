@@ -251,15 +251,19 @@ def train(
     batch_size, learning_rate, no_of_layers, no_of_units, weight_decay, batch_norm, num_epochs = model_hps
 
     if dataset_name != du.DATASET_DICT[6]:
-        X_train, X_test, y_train, _ = prepare_data(dataset_name, seed=seed)
+        X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
     else:
         X_train, y_train = du.get_exam_train_data()
         X_test = du.get_exam_test_data()
+        y_test = None
 
     transformer_X, transformer_y = du.data_transformer(X_train, y_train)
     X_train = du.to_dense(transformer_X.fit_transform(X_train))
     X_test = du.to_dense(transformer_X.transform(X_test))
     y_train = transformer_y.fit_transform(y_train)
+
+    if dataset_name != du.DATASET_DICT[6]:
+        y_test = transformer_y.transform(y_test)
 
     no_of_feats = X_train.shape[1]
 
@@ -309,8 +313,9 @@ def train(
         y_hat = model(X_test)
 
     y_hat = mu.inverse_transform_target(y_hat.cpu().numpy(), transformer_y)
+    y_test = mu.inverse_transform_target(y_test, transformer_y)
 
-    return model, y_hat
+    return model, y_test, y_hat
 
 if __name__ == '__main__':
     pass

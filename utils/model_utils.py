@@ -42,6 +42,9 @@ def inverse_transform_target(y, transformer):
     Inverse transformers the target from standard scaler to the original scale. (Mostly used for FFN )
     """
 
+    if y is None:
+        return None
+
     if y.ndim == 1:
         y = y.reshape(-1, 1)
 
@@ -53,5 +56,7 @@ def average(X):
 
 def get_r2_score(y, y_hat):
 
-    r2 = r2_score(y, y_hat)
-    return r2
+    if len(y) == 0:
+        return None
+
+    return r2_score(y, y_hat)

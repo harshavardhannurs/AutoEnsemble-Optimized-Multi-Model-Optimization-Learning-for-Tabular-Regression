@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from tabpfn import TabPFNRegressor
 
@@ -100,14 +101,16 @@ def train(
 ):
 
     if dataset_name != du.DATASET_DICT[6]:
-        X_train, X_test, y_train, _ = prepare_data(dataset_name, seed=seed)
+        X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
     else:
         X_train, y_train = du.get_exam_train_data()
         X_test = du.get_exam_test_data()
+        y_test = pd.DataFrame()
 
     X_train = du.to_numpy(X_train)
     X_test = du.to_numpy(X_test)
     y_train = y_train.values.ravel()
+    y_test = y_test.values.ravel()
 
     train_size = X_train.shape[0]
     subsample_cap = 900 if train_size > 6000 else train_size
@@ -135,7 +138,7 @@ def train(
     # Split X_test into batches to avoid memory issues
     y_hat = np.concatenate(y_hat_batch, axis=0)
 
-    return model, y_hat
+    return model, y_test, y_hat
 
 if __name__=='__main__':
     pass

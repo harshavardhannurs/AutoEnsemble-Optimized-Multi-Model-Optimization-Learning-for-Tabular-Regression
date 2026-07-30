@@ -33,7 +33,7 @@ def train(dataset_name, seed, save_path):
                         config.get('batch_norm'),
                         config.get('num_epochs')
                     )
-                    m, y_hat = ffn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+                    m, y, y_hat = ffn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
                 case 'xgb':
                     model_hps = (
                         config.get('n_estimators_xgb'),
@@ -43,7 +43,7 @@ def train(dataset_name, seed, save_path):
                         config.get('colsample_bytree'),
                         config.get('reg_lambda')
                     )
-                    m, y_hat = xgb.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+                    m, y, y_hat = xgb.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
                 case 'randomforest':
                     model_hps = (
                         config.get('n_estimators_rf'),
@@ -51,9 +51,9 @@ def train(dataset_name, seed, save_path):
                         config.get('min_samples_leaf_rf'),
                         config.get('max_features_rf')
                     )
-                    m, y_hat = rf.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+                    m, y, y_hat = rf.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
                 case 'pfn':
-                    m, y_hat = pfn.train(dataset_name=dataset_name, seed=seed)
+                    m, y, y_hat = pfn.train(dataset_name=dataset_name, seed=seed)
                 case 'extratrees':
                     model_hps = (
                         config.get('n_estimators_et'),
@@ -61,7 +61,7 @@ def train(dataset_name, seed, save_path):
                         config.get('min_samples_leaf_et'),
                         config.get('max_features_et')
                     )
-                    m, y_hat = et.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+                    m, y, y_hat = et.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
                 case 'hgb':
                     model_hps = (
                         config.get('max_iter_hgb'),
@@ -72,7 +72,7 @@ def train(dataset_name, seed, save_path):
                         config.get('max_features_hgb'),
                         config.get('max_bins_hgb')
                     )
-                    m, y_hat = hgb.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+                    m, y, y_hat = hgb.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
                 case _:
                     raise ValueError(f"Unsupported model type: {model_name}")
 
