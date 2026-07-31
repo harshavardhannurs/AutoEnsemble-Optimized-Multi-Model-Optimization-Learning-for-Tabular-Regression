@@ -1,12 +1,49 @@
 # Running the Project
 
-## 1. Create the Conda Environment
+## 1. Create a Local Python Environment
 
-From the project root, create the required Conda environment:
+Choose either Conda or Python's built-in `venv`. Run all commands from the
+project root.
+
+### Option A: Conda
+
+Create and activate the environment defined in `environment.yml`:
 
 ```bash
 conda env create -f environment.yml
+conda activate automl_final
 ```
+
+### Option B: Python `venv`
+
+Python 3.12 is recommended because it matches the version used by the Conda
+environment.
+
+Create the virtual environment:
+
+```bash
+python3.12 -m venv .venv
+```
+
+Activate it on macOS or Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+Activate it on Windows PowerShell:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+Then install the project dependencies from `requirements.txt`:
+
+```bash
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements.txt
+```
+
 
 ---
 
