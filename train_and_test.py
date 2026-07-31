@@ -56,7 +56,8 @@ def train(dataset_name, delta, temperature, save_path, seed):
                     )
                     m, y, y_hat = rf.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
                 case 'pfn':
-                    m, y, y_hat = pfn.train(dataset_name=dataset_name, seed=seed)
+                    model_hps = config.get('n_estimators_pfn')
+                    m, y, y_hat = pfn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
                 case 'extratrees':
                     model_hps = (
                         config.get('n_estimators_et'),

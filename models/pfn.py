@@ -97,6 +97,7 @@ def pipelined_model(
 
 def train(
         dataset_name,
+        model_hps,
         seed=42
 ):
 
@@ -116,7 +117,7 @@ def train(
     subsample_cap = 900 if train_size > 6000 else train_size
 
     model = TabPFNRegressor(
-        n_estimators=16, # recommended in the documentation
+        n_estimators=model_hps,
         ignore_pretraining_limits=True,
         inference_config= {
             'SUBSAMPLE_SAMPLES': subsample_cap,
