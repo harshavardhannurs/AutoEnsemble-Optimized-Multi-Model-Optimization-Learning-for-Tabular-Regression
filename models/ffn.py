@@ -6,18 +6,9 @@ import torch.nn.functional as F
 
 from copy import deepcopy
 
-from sklearn.model_selection import KFold
-
 import utils.data_utils as du
 import utils.model_utils as mu
 
-def prepare_data(dataset_name, seed=42):
-
-    data = du.get_combined_dataset(dataset_name)
-    X, y = du.split_features_and_target(data)
-    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2, seed=seed)
-
-    return X_train, X_test, y_train, y_test
 
 def setup_model(
         no_of_feats,
@@ -82,18 +73,18 @@ def setup_model(
     return model, optimizer, loss_function
 
 def run_cv(
-        X_train,
-        y_train,
+        dataset_name,
         model_hps,
         batch_size=64,
         num_epochs=500,
-        n_splits=10,
+        n_splits=None,
         seed=42
 ):
 
     device = mu.set_device()
 
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
+    if n_splits is None:
+        n_splits = du.get_num_folds(dataset_name)
 
     train_loss_across_folds = np.zeros((n_splits, num_epochs))
     val_loss_across_folds = np.zeros((n_splits, num_epochs))
@@ -101,12 +92,18 @@ def run_cv(
 
     no_of_layers, no_of_units, learning_rate, weight_decay, batch_norm = model_hps
 
-    for i, (train_indices, val_indices) in enumerate(kf.split(X_train)):
+    for i in range(n_splits):
+        fold_number = i + 1
+        X_train_fold, y_train_fold, X_val_fold, y_val_fold = du.get_fold_data(dataset_name, fold_number)
 
-        X_train_fold = X_train.iloc[train_indices]
-        X_val_fold = X_train.iloc[val_indices]
-        y_train_fold = y_train.iloc[train_indices]
-        y_val_fold = y_train.iloc[val_indices]
+        # Handle cases where y_val_fold might be None (e.g., exam_dataset)
+        if y_val_fold is None:
+            # If no validation target, we can't compute R2 for this fold. 
+            # This happens for exam_dataset where only X_test is provided in the fold.
+            # However, for CV we usually need a validation set with targets.
+            # If it's a single fold without y_test, CV isn't really possible in the traditional sense.
+            print(f"[CV][Split {i + 1}] No validation target found. Skipping R2 calculation for this fold.")
+            continue
 
         # Now apply the transformation
         transformer_X, transformer_y = du.data_transformer(X_train_fold, y_train_fold)
@@ -221,18 +218,12 @@ def pipelined_model(
         weight_decay,
         batch_norm,
         num_epochs,
-        n_splits=10,
+        n_splits=None,
         seed=42
 ):
 
-    if dataset_name != du.DATASET_DICT[6]:
-        X_train, _, y_train, _ = prepare_data(dataset_name, seed=seed)
-    else:
-        X_train, y_train = du.get_exam_train_data()
-
     r2_score_across_folds = run_cv(
-        X_train=X_train,
-        y_train=y_train,
+        dataset_name=dataset_name,
         model_hps=(no_of_layers, no_of_units, learning_rate, weight_decay, batch_norm),
         batch_size=batch_size,
         num_epochs=num_epochs,
@@ -243,27 +234,26 @@ def pipelined_model(
     return r2_score_across_folds
 
 def train(
-        dataset_name,
-        model_hps,
-        seed=42
+    dataset_name,
+    model_hps,
+    seed=42
 ):
 
     batch_size, learning_rate, no_of_layers, no_of_units, weight_decay, batch_norm, num_epochs = model_hps
 
-    if dataset_name != du.DATASET_DICT[6]:
-        X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
-    else:
-        X_train, y_train = du.get_exam_train_data()
-        X_test = du.get_exam_test_data()
-        y_test = None
+    # Use all folds for final training/testing
+    X_train, y_train, X_test, y_test = du.get_all_folds_data(dataset_name)
 
     transformer_X, transformer_y = du.data_transformer(X_train, y_train)
     X_train = du.to_dense(transformer_X.fit_transform(X_train))
     X_test = du.to_dense(transformer_X.transform(X_test))
     y_train = transformer_y.fit_transform(y_train)
 
-    if dataset_name != du.DATASET_DICT[6]:
+    if y_test is not None:
         y_test = transformer_y.transform(y_test)
+        y_test = mu.inverse_transform_target(y_test, transformer_y)
+    else:
+        y_test = np.array([])
 
     no_of_feats = X_train.shape[1]
 
@@ -313,7 +303,6 @@ def train(
         y_hat = model(X_test)
 
     y_hat = mu.inverse_transform_target(y_hat.cpu().numpy(), transformer_y)
-    y_test = mu.inverse_transform_target(y_test, transformer_y)
 
     return model, y_test, y_hat
 

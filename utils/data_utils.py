@@ -6,7 +6,6 @@ import pandas as pd
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 
-from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
@@ -14,123 +13,127 @@ from sklearn.pipeline import Pipeline
 
 DATASET_DICT = {1: 'bike_sharing_demand', 2: 'brazilian_houses', 3: 'superconductivity', 4: 'wine_quality', 5: 'yprop_4_1', 6: 'exam_dataset'}
 
-def get_combined_dataset(dataset_name):
+def get_num_folds(dataset_name):
 
     """
-    Combines all folds of a dataset into a single DataFrame.
+    Returns the number of fold directories for a dataset.
     """
 
     utils_dir = Path(__file__).resolve().parent
-
     project_root = utils_dir.parent
-
     data_dir = project_root/'data'/dataset_name
 
     if not data_dir.exists():
-        raise FileNotFoundError(f"Directory does not exist: {data_dir}")
+        return 0
 
-    folds = []
-
+    num_folds = 0
     for fold_dir in data_dir.iterdir():
-        X_train = pd.read_parquet(fold_dir/'X_train.parquet')
-        y_train = pd.read_parquet(fold_dir/'y_train.parquet')
-        X_test = pd.read_parquet(fold_dir/'X_test.parquet')
-        y_test = pd.read_parquet(fold_dir/'y_test.parquet')
+        if fold_dir.is_dir() and fold_dir.name.isdigit():
+            num_folds += 1
+    return num_folds
 
-        if isinstance(y_train, pd.Series):
-            y_train = y_train.to_frame()
-        if isinstance(y_test, pd.Series):
-            y_test = y_test.to_frame()
-
-        if y_train.shape[1] == 1:
-            y_train.columns = ['target']
-        if y_test.shape[1] == 1:
-            y_test.columns = ['target']
-
-        train_df = pd.concat([X_train.reset_index(drop=True), y_train.reset_index(drop=True)], axis=1)
-        test_df = pd.concat([X_test.reset_index(drop=True), y_test.reset_index(drop=True)], axis=1)
-        # `reset_index()` is used because pandas allows us to assign custom index values to rows. When we reset the index, the original custom indices are removed and replaced with the default integer index (`0, 1, 2, ...`). By default, pandas preserves the old index by storing it as a new column named `"index"`. Setting `drop=True` prevents this extra column from being created and discards the old index completely.
-
-        fold_df = pd.concat([train_df, test_df], ignore_index=True)
-        # ignore_index=True tells pandas to discard the original row indices when combining DataFrames and create a new default integer index (0, 1, 2, ...) for the resulting DataFrame. Without it, pandas preserves the original indices, which can lead to duplicate index values after operations like concat().
-        folds.append(fold_df)
-        # we can append any type of object to a python list (numerical, dictionary, custom objects, etc.). Also, it need not be a homogenous collection.
-
-    dataset = pd.concat(folds, ignore_index=True)
-
-    dataset = dataset.drop_duplicates().reset_index(drop=True)
-
-    return eng_features(dataset_name, dataset)
-
-def get_exam_train_data():
-
+def get_fold_data(dataset_name, fold_number):
+    
     """
-    Returns X_train and y_train dataframes for the exam dataset.
+    Returns X_train, y_train, X_test, y_test for a specific fold of a dataset.
     """
+    
+    utils_dir = Path(__file__).resolve().parent
+    project_root = utils_dir.parent
+    fold_dir = project_root/'data'/dataset_name/str(fold_number)
 
-    path = Path(__file__).resolve().parent.parent / 'data' / 'exam_dataset' / '1'
+    if not fold_dir.exists():
+        raise FileNotFoundError(f"Fold directory does not exist: {fold_dir}")
 
-    X_train = pd.read_parquet(path/'X_train.parquet').reset_index(drop=True)
-    y_train = pd.read_parquet(path/'y_train.parquet').reset_index(drop=True)
+    X_train = pd.read_parquet(fold_dir/'X_train.parquet').reset_index(drop=True)
+    y_train = pd.read_parquet(fold_dir/'y_train.parquet').reset_index(drop=True)
+    X_test = pd.read_parquet(fold_dir/'X_test.parquet').reset_index(drop=True)
+
+    y_test_path = fold_dir/'y_test.parquet'
+    if y_test_path.exists():
+        y_test = pd.read_parquet(y_test_path).reset_index(drop=True)
+    else:
+        y_test = None
 
     if isinstance(y_train, pd.Series):
         y_train = y_train.to_frame()
+    if y_test is not None and isinstance(y_test, pd.Series):
+        y_test = y_test.to_frame()
 
     if y_train.shape[1] == 1:
         y_train.columns = ['target']
+    if y_test is not None and y_test.shape[1] == 1:
+        y_test.columns = ['target']
 
-    return eng_exam_dataset_features(X_train), y_train
+    # Apply feature engineering
+    X_train = eng_features(dataset_name, X_train)
+    X_test = eng_features(dataset_name, X_test)
 
-def get_exam_test_data():
+    return X_train, y_train, X_test, y_test
+
+def get_all_folds_data(dataset_name):
+    
+    """
+    Returns combined X_train, y_train, X_test, y_test for all folds of a dataset.
+    """
+    
+    num_folds = get_num_folds(dataset_name)
+    X_train_list, y_train_list, X_test_list, y_test_list = [], [], [], []
+    
+    for fold in range(1, num_folds + 1):
+        X_tr, y_tr, X_te, y_te = get_fold_data(dataset_name, fold)
+        X_train_list.append(X_tr)
+        y_train_list.append(y_tr)
+        X_test_list.append(X_te)
+        if y_te is not None:
+            y_test_list.append(y_te)
+            
+    X_train = pd.concat(X_train_list, axis=0).reset_index(drop=True)
+    y_train = pd.concat(y_train_list, axis=0).reset_index(drop=True)
+    X_test = pd.concat(X_test_list, axis=0).reset_index(drop=True)
+    
+    if y_test_list:
+        y_test = pd.concat(y_test_list, axis=0).reset_index(drop=True)
+    else:
+        y_test = None
+        
+    return X_train, y_train, X_test, y_test
+
+def get_oof_data(dataset_name, val_fold_number):
 
     """
-    Returns X_test dataframe for the exam dataset.
+    Returns X_train, y_train (combined from all folds EXCEPT val_fold_number)
+    and X_val, y_val (from val_fold_number).
     """
 
-    path = Path(__file__).resolve().parent.parent / 'data' / 'exam_dataset' / '1'
+    num_folds = get_num_folds(dataset_name)
+    X_train_list, y_train_list = [], []
+    X_val, y_val, _, _ = get_fold_data(dataset_name, val_fold_number)
 
-    X_test = pd.read_parquet(path/'X_test.parquet').reset_index(drop=True)
+    for fold in range(1, num_folds + 1):
+        if fold == val_fold_number:
+            continue
+        X_tr, y_tr, _, _ = get_fold_data(dataset_name, fold)
+        X_train_list.append(X_tr)
+        y_train_list.append(y_tr)
 
-    return eng_exam_dataset_features(X_test)
+    if not X_train_list:
+        # For single fold datasets (like exam_dataset), X_train will be empty
+        # or we might want to return the same as validation.
+        # However, OOF is usually for multi-fold.
+        # If there's only one fold, OOF is essentially the validation on that fold.
+        # But we need training data. For 1-fold, we can't really do OOF properly
+        # without splitting the single fold.
+        # Given the requirement, for 1-fold we might just use fold 1 for both
+        # or return empty.
+        X_train = X_val.copy()
+        y_train = y_val.copy()
+    else:
+        X_train = pd.concat(X_train_list, axis=0).reset_index(drop=True)
+        y_train = pd.concat(y_train_list, axis=0).reset_index(drop=True)
 
-def eng_exam_dataset_features(df):
+    return X_train, y_train, X_val, y_val
 
-    df = df.copy()
-
-    df["living_area_ratio"] = df["TOT_LVG_AREA"] / df["LND_SQFOOT"].replace(0, np.nan)
-    df["unused_land"] = df["LND_SQFOOT"] - df["TOT_LVG_AREA"]
-    df["total_accessibility"] = (
-            df["RAIL_DIST"] +
-            df["HWY_DIST"] +
-            df["CNTR_DIST"]
-    )
-
-    c = df[[
-        "RAIL_DIST",
-        "OCEAN_DIST",
-        "WATER_DIST",
-        "CNTR_DIST",
-        "SUBCNTR_DI",
-        "HWY_DIST",
-    ]]
-
-    df["avg_distance"] = c.mean(axis=1)
-    df["closest_amenity"] = c.min(axis=1)
-    df["furthest_amenity"] = c.max(axis=1)
-    df["lat_long_interaction"] = (
-            df["LATITUDE"] * df["LONGITUDE"]
-    )
-    df["age_squared"] = df["age"] ** 2
-    df["quality_age"] = (
-            df["structure_quality"] /
-            (df["age"] + 1)
-    )
-    df["quality_area"] = (
-            df["structure_quality"] *
-            df["TOT_LVG_AREA"]
-    )
-
-    return df
 
 def eng_features(dataset_name, df):
 
@@ -142,8 +145,10 @@ def eng_features(dataset_name, df):
 
     # Generic engineering features
 
-    target_column = df['target']
-    df = df.drop(columns=['target'])
+    target_column = None
+    if 'target' in df.columns:
+        target_column = df['target']
+        df = df.drop(columns=['target'])
 
     df['mean'] = df.mean(axis=1, numeric_only=True)
     df['std'] = df.std(axis=1, numeric_only=True)
@@ -187,32 +192,48 @@ def eng_features(dataset_name, df):
         df['free_sulfur_dioxide_ratio'] = df['free_sulfur_dioxide'] / df['total_sulfur_dioxide'].replace(0, np.nan)
         df['density_alcohol_interaction'] = df['density'] * df['alcohol']
 
+    elif dataset_name == DATASET_DICT[6]:
+
+        # exam_dataset
+        df["living_area_ratio"] = df["TOT_LVG_AREA"] / df["LND_SQFOOT"].replace(0, np.nan)
+        df["unused_land"] = df["LND_SQFOOT"] - df["TOT_LVG_AREA"]
+        df["total_accessibility"] = (
+                df["RAIL_DIST"] +
+                df["HWY_DIST"] +
+                df["CNTR_DIST"]
+        )
+
+        c = df[[
+            "RAIL_DIST",
+            "OCEAN_DIST",
+            "WATER_DIST",
+            "CNTR_DIST",
+            "SUBCNTR_DI",
+            "HWY_DIST",
+        ]]
+
+        df["avg_distance"] = c.mean(axis=1)
+        df["closest_amenity"] = c.min(axis=1)
+        df["furthest_amenity"] = c.max(axis=1)
+        df["lat_long_interaction"] = (
+                df["LATITUDE"] * df["LONGITUDE"]
+        )
+        df["age_squared"] = df["age"] ** 2
+        df["quality_age"] = (
+                df["structure_quality"] /
+                (df["age"] + 1)
+        )
+        df["quality_area"] = (
+                df["structure_quality"] *
+                df["TOT_LVG_AREA"]
+        )
+
     # For yprop_4_1, we couldn't add any new columns due to non-meaningful feature names.
 
-    df = pd.concat([df, target_column], axis=1)
+    if target_column is not None:
+        df = pd.concat([df, target_column], axis=1)
 
     return df
-
-def split_features_and_target(df, target_column='target'):
-
-    """
-    Splits the DataFrame into features (X) and target (y).
-    """
-
-    X = df.drop(columns=[target_column])
-    y = df[target_column].to_frame(name=getattr(df[target_column], "name", "target"))
-
-    return X, y
-
-def split_train_test(X, y, test_size=0.2, seed=42):
-
-    """
-    Split the data into train and test sets.
-    """
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=True, random_state=seed)
-
-    return X_train, X_test, y_train, y_test
 
 def to_numpy(x):
     if hasattr(x, "to_numpy"):

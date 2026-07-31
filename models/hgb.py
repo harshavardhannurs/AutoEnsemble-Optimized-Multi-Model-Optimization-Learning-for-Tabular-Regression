@@ -1,20 +1,10 @@
 import numpy as np
 import pandas as pd
 
-from sklearn.model_selection import KFold
-
 from sklearn.ensemble import HistGradientBoostingRegressor
 
 import utils.data_utils as du
 import utils.model_utils as mu
-
-def prepare_data(dataset_name, seed=42):
-
-    data = du.get_combined_dataset(dataset_name)
-    X, y = du.split_features_and_target(data)
-    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2, seed=seed)
-
-    return X_train, X_test, y_train, y_test
 
 def setup_model(
         max_iter,
@@ -40,24 +30,25 @@ def setup_model(
     return hbgr
 
 def run_cv(
-        X_train,
-        y_train,
+        dataset_name,
         model_hps,
-        n_splits=10,
+        n_splits=None,
         seed=42
 ):
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
+    if n_splits is None:
+        n_splits = du.get_num_folds(dataset_name)
 
     r2_score_across_folds = np.zeros((n_splits,))
 
     max_iter, learning_rate, max_leaf_nodes, min_samples_leaf, l2_reg, max_features, max_bins = model_hps
 
-    for i, (train_indices, val_indices) in enumerate(kf.split(X_train)):
+    for i in range(n_splits):
+        fold_number = i + 1
+        X_train_fold, y_train_fold, X_val_fold, y_val_fold = du.get_fold_data(dataset_name, fold_number)
 
-        X_train_fold = X_train.iloc[train_indices]
-        X_val_fold = X_train.iloc[val_indices]
-        y_train_fold = y_train.iloc[train_indices]
-        y_val_fold = y_train.iloc[val_indices]
+        if y_val_fold is None:
+            print(f"[CV][Split {i + 1}] No validation target found. Skipping R2 calculation for this fold.")
+            continue
 
         transformer_X, _ = du.data_transformer(X_train_fold, y_train_fold, scale_numeric=False, impute_missing=False)
 
@@ -101,20 +92,14 @@ def pipelined_model(
         l2_reg,
         max_features,
         max_bins,
-        n_splits=10,
+        n_splits=None,
         seed=42
 ):
-
-    if dataset_name != du.DATASET_DICT[6]:
-        X_train, _, y_train, _ = prepare_data(dataset_name, seed=seed)
-    else:
-        X_train, y_train = du.get_exam_train_data()
 
     model_hps = (max_iter, learning_rate, max_leaf_nodes, min_samples_leaf, l2_reg, max_features, max_bins)
 
     r2_score_across_folds = run_cv(
-        X_train=X_train,
-        y_train=y_train,
+        dataset_name=dataset_name,
         model_hps=model_hps,
         n_splits=n_splits,
         seed=seed
@@ -130,11 +115,10 @@ def train(
 
     max_iter, learning_rate, max_leaf_nodes, min_samples_leaf, l2_reg, max_features, max_bins = model_hps
 
-    if dataset_name != du.DATASET_DICT[6]:
-        X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
-    else:
-        X_train, y_train = du.get_exam_train_data()
-        X_test = du.get_exam_test_data()
+    # Use all folds for final training/testing
+    X_train, y_train, X_test, y_test = du.get_all_folds_data(dataset_name)
+
+    if y_test is None:
         y_test = pd.DataFrame()
 
     transformer_X, _ = du.data_transformer(X_train, y_train, scale_numeric=False, impute_missing=False)

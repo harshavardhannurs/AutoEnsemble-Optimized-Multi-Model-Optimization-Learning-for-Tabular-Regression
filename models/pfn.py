@@ -3,37 +3,28 @@ import pandas as pd
 
 from tabpfn import TabPFNRegressor
 
-from sklearn.model_selection import KFold
-
 import utils.data_utils as du
 import utils.model_utils as mu
 
-def prepare_data(dataset_name, seed=42):
-
-    data = du.get_combined_dataset(dataset_name)
-    X, y = du.split_features_and_target(data)
-    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2, seed=seed)
-
-    return X_train, X_test, y_train, y_test
-
 def run_cv(
-        X_train,
-        y_train,
+        dataset_name,
         n_estimators,
-        n_splits=5,
+        n_splits=None,
         seed=42
 ):
 
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+    if n_splits is None:
+        n_splits = du.get_num_folds(dataset_name)
 
     r2_score_across_folds = np.zeros((n_splits,))
 
-    for i, (train_indices, val_indices) in enumerate(kf.split(X_train)):
+    for i in range(n_splits):
+        fold_number = i + 1
+        X_train_fold, y_train_fold, X_val_fold, y_val_fold = du.get_fold_data(dataset_name, fold_number)
 
-        X_train_fold = X_train.iloc[train_indices]
-        X_val_fold = X_train.iloc[val_indices]
-        y_train_fold = y_train.iloc[train_indices]
-        y_val_fold = y_train.iloc[val_indices]
+        if y_val_fold is None:
+            print(f"[CV][Split {i + 1}] No validation target found. Skipping R2 calculation for this fold.")
+            continue
 
         transformer_X, _ = du.data_transformer(X_train_fold, y_train_fold, scale_numeric=False, impute_missing=False, encode_categorical=False)
         # TabPFN natively handles missing values and feature scaling, one-hot-encoding is ineffective as per the documentation
@@ -46,11 +37,11 @@ def run_cv(
         y_train_fold = du.to_dense(y_train_fold).values.ravel()
         y_val_fold = du.to_dense(y_val_fold).values.ravel()
 
-        train_size = X_train.shape[0]
+        train_size = X_train_fold.shape[0]
         subsample_cap = 900 if train_size > 6000 else train_size
 
         model = TabPFNRegressor(
-            n_estimators=n_estimators,  # recommended in the documentation
+            n_estimators=n_estimators,
             ignore_pretraining_limits=True,
             inference_config={
                 'SUBSAMPLE_SAMPLES': subsample_cap,
@@ -76,18 +67,12 @@ def run_cv(
 def pipelined_model(
         dataset_name,
         n_estimators,
-        n_splits=5,
+        n_splits=None,
         seed=42
 ):
 
-    if dataset_name != du.DATASET_DICT[6]:
-        X_train, _, y_train, _ = prepare_data(dataset_name, seed=seed)
-    else:
-        X_train, y_train = du.get_exam_train_data()
-
     r2_score_across_folds = run_cv(
-        X_train=X_train,
-        y_train=y_train,
+        dataset_name=dataset_name,
         n_splits=n_splits,
         n_estimators=n_estimators,
         seed=seed
@@ -101,11 +86,10 @@ def train(
         seed=42
 ):
 
-    if dataset_name != du.DATASET_DICT[6]:
-        X_train, X_test, y_train, y_test = prepare_data(dataset_name, seed=seed)
-    else:
-        X_train, y_train = du.get_exam_train_data()
-        X_test = du.get_exam_test_data()
+    # Use all folds for final training/testing
+    X_train, y_train, X_test, y_test = du.get_all_folds_data(dataset_name)
+
+    if y_test is None:
         y_test = pd.DataFrame()
 
     X_train = du.to_numpy(X_train)
@@ -116,8 +100,15 @@ def train(
     train_size = X_train.shape[0]
     subsample_cap = 900 if train_size > 6000 else train_size
 
+    if isinstance(model_hps, (tuple, list)) and len(model_hps) > 0:
+        n_estimators = model_hps[0]
+    elif isinstance(model_hps, (int, float)):
+        n_estimators = int(model_hps)
+    else:
+        n_estimators = 8 # Default
+
     model = TabPFNRegressor(
-        n_estimators=model_hps,
+        n_estimators=n_estimators,
         ignore_pretraining_limits=True,
         inference_config= {
             'SUBSAMPLE_SAMPLES': subsample_cap,
