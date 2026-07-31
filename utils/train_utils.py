@@ -196,6 +196,9 @@ def get_oof_predictions(dataset_name, config):
     model_hps = get_model_hps(config)
 
     for fold in range(1, num_folds + 1):
+
+        print("Evaluating fold", fold, "...")
+
         X_train_fold, y_train_fold, X_val_fold, y_val_fold = du.get_oof_data(dataset_name, fold)
 
         if y_val_fold is None or y_val_fold.empty:
