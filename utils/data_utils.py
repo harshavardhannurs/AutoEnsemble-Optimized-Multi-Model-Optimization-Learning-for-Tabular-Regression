@@ -81,7 +81,7 @@ def get_fold_data(dataset_name, fold_number):
         # We also need the test data for prediction in some cases
         X_test = eng_features(dataset_name, X_test_all)
         
-        return X_train, y_train, X_test, y_val
+        return X_train, y_train, X_val, y_val
 
     utils_dir = Path(__file__).resolve().parent
     project_root = utils_dir.parent
@@ -117,9 +117,11 @@ def get_fold_data(dataset_name, fold_number):
     return X_train, y_train, X_test, y_test
 
 def get_all_folds_data(dataset_name):
-    
     """
-    Returns combined X_train, y_train, X_test, y_test for all folds of a dataset.
+    Returns X_train, y_train, X_test, y_test combined from all folds.
+    For bike_sharing_demand and others where X_train of one fold contains 
+    X_test of others, we use the union of all X_test as the 'full' dataset 
+    to avoid redundant training and leakage during OOF evaluation.
     """
     
     if dataset_name == DATASET_DICT[6]:
@@ -140,68 +142,47 @@ def get_all_folds_data(dataset_name):
         X_train = eng_features(dataset_name, X_train)
         X_test = eng_features(dataset_name, X_test)
         
-        return X_train, y_train, X_test, None
+        return X_train, y_train, X_test, pd.DataFrame(columns=y_train.columns)
 
     num_folds = get_num_folds(dataset_name)
-    X_train_list, y_train_list, X_test_list, y_test_list = [], [], [], []
+    X_test_list, y_test_list = [], []
     
     for fold in range(1, num_folds + 1):
         X_tr, y_tr, X_te, y_te = get_fold_data(dataset_name, fold)
-        X_train_list.append(X_tr)
-        y_train_list.append(y_tr)
+        # In these datasets, the union of X_test across all folds 
+        # constitutes the complete training dataset.
         X_test_list.append(X_te)
         if y_te is not None:
             y_test_list.append(y_te)
             
-    X_train = pd.concat(X_train_list, axis=0).reset_index(drop=True)
-    y_train = pd.concat(y_train_list, axis=0).reset_index(drop=True)
-    X_test = pd.concat(X_test_list, axis=0).reset_index(drop=True)
-    
+    X_train_full = pd.concat(X_test_list, axis=0).reset_index(drop=True)
     if y_test_list:
-        y_test = pd.concat(y_test_list, axis=0).reset_index(drop=True)
+        y_train_full = pd.concat(y_test_list, axis=0).reset_index(drop=True)
     else:
-        y_test = None
+        y_train_full = None
+    
+    # For these datasets, X_test is actually hidden or not provided in the same way.
+    # Usually, we want to return the same X_test as in get_fold_data(1) if it exists.
+    _, _, X_test, y_test = get_fold_data(dataset_name, 1)
         
-    return X_train, y_train, X_test, y_test
+    return X_train_full, y_train_full, X_test, y_test
 
 def get_oof_data(dataset_name, val_fold_number):
 
     """
-    Returns X_train, y_train (combined from all folds EXCEPT val_fold_number)
-    and X_val, y_val (from val_fold_number).
+    Returns X_train, y_train and X_val, y_val for a specific fold.
+    For pre-split datasets, each fold already contains X_train and X_test (validation).
+    For exam_dataset, we use the 10-fold split.
     """
 
     if dataset_name == DATASET_DICT[6]:
         # For exam_dataset, get_fold_data already does the splitting
         return get_fold_data(dataset_name, val_fold_number)
 
-    num_folds = get_num_folds(dataset_name)
-    X_train_list, y_train_list = [], []
-    X_val, y_val, _, _ = get_fold_data(dataset_name, val_fold_number)
-
-    for fold in range(1, num_folds + 1):
-        if fold == val_fold_number:
-            continue
-        X_tr, y_tr, _, _ = get_fold_data(dataset_name, fold)
-        X_train_list.append(X_tr)
-        y_train_list.append(y_tr)
-
-    if not X_train_list:
-        # For single fold datasets (like exam_dataset), X_train will be empty
-        # or we might want to return the same as validation.
-        # However, OOF is usually for multi-fold.
-        # If there's only one fold, OOF is essentially the validation on that fold.
-        # But we need training data. For 1-fold, we can't really do OOF properly
-        # without splitting the single fold.
-        # Given the requirement, for 1-fold we might just use fold 1 for both
-        # or return empty.
-        X_train = X_val.copy()
-        y_train = y_val.copy()
-    else:
-        X_train = pd.concat(X_train_list, axis=0).reset_index(drop=True)
-        y_train = pd.concat(y_train_list, axis=0).reset_index(drop=True)
-
-    return X_train, y_train, X_val, y_val
+    # For other datasets, each fold directory already provides an X_train and its corresponding X_test (validation)
+    # Combining X_train from other folds would cause leakage because X_train of one fold 
+    # contains X_test of other folds.
+    return get_fold_data(dataset_name, val_fold_number)
 
 
 def eng_features(dataset_name, df):
