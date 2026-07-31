@@ -286,6 +286,9 @@ def get_oof_predictions(dataset_name, config):
                         loss = criterion(outputs, batch_y)
                         loss.backward()
                         optimizer.step()
+
+                    if (epoch + 1) % 10 == 0:
+                        print(f'Epoch {epoch + 1}/{num_epochs} completed')
                 
                 model.eval()
                 with torch.no_grad():
