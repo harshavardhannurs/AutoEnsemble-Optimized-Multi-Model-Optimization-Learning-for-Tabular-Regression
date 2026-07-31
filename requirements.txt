@@ -1,6 +1,6 @@
 numpy==2.5.1
 pandas==2.3.3
-fastparquet==2024.11.0
+fastparquet
 scikit-learn==1.8.0
 matplotlib==3.11.1
 torch==2.13.0
