@@ -10,6 +10,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import KFold
 
 DATASET_DICT = {1: 'bike_sharing_demand', 2: 'brazilian_houses', 3: 'superconductivity', 4: 'wine_quality', 5: 'yprop_4_1', 6: 'exam_dataset'}
 
@@ -18,6 +19,9 @@ def get_num_folds(dataset_name):
     """
     Returns the number of fold directories for a dataset.
     """
+
+    if dataset_name == DATASET_DICT[6]:
+        return 10
 
     utils_dir = Path(__file__).resolve().parent
     project_root = utils_dir.parent
@@ -38,6 +42,47 @@ def get_fold_data(dataset_name, fold_number):
     Returns X_train, y_train, X_test, y_test for a specific fold of a dataset.
     """
     
+    if dataset_name == DATASET_DICT[6]:
+        # Special handling for exam_dataset to split fold 1 into 10 folds
+        # fold_number here will be 1 to 10
+        utils_dir = Path(__file__).resolve().parent
+        project_root = utils_dir.parent
+        base_fold_dir = project_root/'data'/dataset_name/'1'
+        
+        X_train_full = pd.read_parquet(base_fold_dir/'X_train.parquet').reset_index(drop=True)
+        y_train_full = pd.read_parquet(base_fold_dir/'y_train.parquet').reset_index(drop=True)
+        X_test_all = pd.read_parquet(base_fold_dir/'X_test.parquet').reset_index(drop=True)
+        
+        # We use a fixed seed for KFold to ensure consistency across calls
+        kf = KFold(n_splits=10, shuffle=True, random_state=42)
+        folds = list(kf.split(X_train_full))
+        
+        train_idx, val_idx = folds[fold_number - 1]
+        
+        X_train = X_train_full.iloc[train_idx].reset_index(drop=True)
+        y_train = y_train_full.iloc[train_idx].reset_index(drop=True)
+        X_val = X_train_full.iloc[val_idx].reset_index(drop=True)
+        y_val = y_train_full.iloc[val_idx].reset_index(drop=True)
+        
+        if isinstance(y_train, pd.Series):
+            y_train = y_train.to_frame()
+        if isinstance(y_val, pd.Series):
+            y_val = y_val.to_frame()
+            
+        if y_train.shape[1] == 1:
+            y_train.columns = ['target']
+        if y_val.shape[1] == 1:
+            y_val.columns = ['target']
+            
+        # Apply feature engineering
+        X_train = eng_features(dataset_name, X_train)
+        X_val = eng_features(dataset_name, X_val)
+        
+        # We also need the test data for prediction in some cases
+        X_test = eng_features(dataset_name, X_test_all)
+        
+        return X_train, y_train, X_test, y_val
+
     utils_dir = Path(__file__).resolve().parent
     project_root = utils_dir.parent
     fold_dir = project_root/'data'/dataset_name/str(fold_number)
@@ -77,6 +122,26 @@ def get_all_folds_data(dataset_name):
     Returns combined X_train, y_train, X_test, y_test for all folds of a dataset.
     """
     
+    if dataset_name == DATASET_DICT[6]:
+        # Special handling for exam_dataset
+        utils_dir = Path(__file__).resolve().parent
+        project_root = utils_dir.parent
+        fold_dir = project_root/'data'/dataset_name/'1'
+        
+        X_train = pd.read_parquet(fold_dir/'X_train.parquet').reset_index(drop=True)
+        y_train = pd.read_parquet(fold_dir/'y_train.parquet').reset_index(drop=True)
+        X_test = pd.read_parquet(fold_dir/'X_test.parquet').reset_index(drop=True)
+        
+        if isinstance(y_train, pd.Series):
+            y_train = y_train.to_frame()
+        if y_train.shape[1] == 1:
+            y_train.columns = ['target']
+            
+        X_train = eng_features(dataset_name, X_train)
+        X_test = eng_features(dataset_name, X_test)
+        
+        return X_train, y_train, X_test, None
+
     num_folds = get_num_folds(dataset_name)
     X_train_list, y_train_list, X_test_list, y_test_list = [], [], [], []
     
@@ -105,6 +170,10 @@ def get_oof_data(dataset_name, val_fold_number):
     Returns X_train, y_train (combined from all folds EXCEPT val_fold_number)
     and X_val, y_val (from val_fold_number).
     """
+
+    if dataset_name == DATASET_DICT[6]:
+        # For exam_dataset, get_fold_data already does the splitting
+        return get_fold_data(dataset_name, val_fold_number)
 
     num_folds = get_num_folds(dataset_name)
     X_train_list, y_train_list = [], []

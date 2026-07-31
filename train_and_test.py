@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.metrics import r2_score
 
 import utils.train_utils as tu
 import utils.data_utils as du
@@ -22,6 +23,11 @@ def train(dataset_name, delta, temperature, save_path, seed):
             print(f'Generating OOF predictions for {model_name}...')
             oof_preds = tu.get_oof_predictions(dataset_name, config)
             oof_preds_dict[model_name] = oof_preds
+            
+            # Print R2 score for OOF predictions
+            if y_train_all is not None:
+                score = r2_score(y_train_all, oof_preds)
+                print(f'OOF R2 score for {model_name}: {score:.4f}')
         
         weights_dict = tu.find_weights(oof_preds_dict, y_train_all)
         print(f'Optimal weights found: {weights_dict}')
@@ -29,6 +35,7 @@ def train(dataset_name, delta, temperature, save_path, seed):
         # Step 3: Train models with non-zero weights and get test predictions
         final_predictions = []
         final_weights = []
+        y_test_all = None
         
         print('Training models with non-zero weights on the full dataset...')
         for config_dict in top_configs_per_model:
@@ -38,7 +45,7 @@ def train(dataset_name, delta, temperature, save_path, seed):
             
             if weight > 0:
                 print(f'Training final {model_name} model...')
-                _, _, y_hat = tu.train_final_model(dataset_name, config, seed)
+                _, y_test_all, y_hat = tu.train_final_model(dataset_name, config, seed)
                 final_predictions.append(y_hat)
                 final_weights.append(weight)
         
@@ -49,6 +56,11 @@ def train(dataset_name, delta, temperature, save_path, seed):
         print('Calculating weighted sum of predictions...')
         final_predictions = np.array(final_predictions)
         y_hat_weighted_average = np.average(final_predictions, axis=0, weights=final_weights)
+
+        # Print final R2 score if y_test is available
+        if y_test_all is not None:
+            final_score = r2_score(y_test_all, y_hat_weighted_average)
+            print(f'Final Ensemble R2 score: {final_score:.4f}')
 
         # Save the predictions
         np.save(save_path, y_hat_weighted_average)
@@ -84,6 +96,10 @@ def train(dataset_name, delta, temperature, save_path, seed):
         )
 
         m, y_test, y_hat = ffn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
+
+        if y_test is not None:
+            score = r2_score(y_test, y_hat)
+            print(f'Baseline FFN R2 score: {score:.4f}')
 
         np.save(save_path, np.asarray(y_hat))
 
