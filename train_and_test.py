@@ -16,6 +16,13 @@ def train(dataset_name, save_path, seed):
         print('Calculating optimal weights using NNLS and OOF predictions...')
         oof_preds_dict = {}
         _, y_train_all, _, _ = du.get_all_folds_data(dataset_name)
+
+        if dataset_name == du.DATASET_DICT[6]: # Preserving the order of y_train for exam_dataset for R2 score to get calculated properly
+            y_train_all  = []
+            for fold in range(1, 11):
+                X_train, y_train, X_val, y_val = du.get_oof_data(dataset_name, fold, seed)
+                y_train_all.append(y_val)
+            y_train_all = np.concatenate(y_train_all, axis=0)
         
         for config_dict in top_configs_per_model:
             config = config_dict['config']
