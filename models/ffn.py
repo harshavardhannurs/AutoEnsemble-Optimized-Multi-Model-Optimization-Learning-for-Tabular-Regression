@@ -9,7 +9,6 @@ from copy import deepcopy
 import utils.data_utils as du
 import utils.model_utils as mu
 
-
 def setup_model(
         no_of_feats,
         no_of_layers,
@@ -94,14 +93,12 @@ def run_cv(
 
     for i in range(n_splits):
         fold_number = i + 1
-        X_train_fold, y_train_fold, X_val_fold, y_val_fold = du.get_fold_data(dataset_name, fold_number)
+        X_train_fold, y_train_fold, X_val_fold, y_val_fold = du.get_fold_data(dataset_name, fold_number, seed)
 
         # Handle cases where y_val_fold might be None (e.g., exam_dataset)
         if y_val_fold is None:
             # If no validation target, we can't compute R2 for this fold. 
             # This happens for exam_dataset where only X_test is provided in the fold.
-            # However, for CV we usually need a validation set with targets.
-            # If it's a single fold without y_test, CV isn't really possible in the traditional sense.
             print(f"[CV][Split {i + 1}] No validation target found. Skipping R2 calculation for this fold.")
             continue
 
@@ -241,8 +238,10 @@ def train(
 
     batch_size, learning_rate, no_of_layers, no_of_units, weight_decay, batch_norm, num_epochs = model_hps
 
-    # Use all folds for final training/testing
-    X_train, y_train, X_test, y_test = du.get_all_folds_data(dataset_name)
+    if dataset_name != du.DATASET_DICT[6]:
+        X_train, y_train, X_test, y_test = du.split_train_test(du.split_features_and_target(du.get_combined_dataset(dataset_name)), seed)
+    else:
+        X_train, y_train, X_test, y_test = du.get_all_folds_data(dataset_name)
 
     transformer_X, transformer_y = du.data_transformer(X_train, y_train)
     X_train = du.to_dense(transformer_X.fit_transform(X_train))

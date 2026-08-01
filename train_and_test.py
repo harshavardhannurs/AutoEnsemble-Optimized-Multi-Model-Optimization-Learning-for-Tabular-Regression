@@ -6,13 +6,13 @@ import utils.data_utils as du
 
 import models.ffn as ffn
 
-def train(dataset_name, delta, temperature, save_path, seed):
+def train(dataset_name, save_path, seed):
 
     try:
-        # Step 1: Fetch top configs per model type
+        # Fetch top configs of each model type
         top_configs_per_model = tu.get_top_configs_per_model(dataset_name=dataset_name)
         
-        # Step 2: Get OOF predictions to calculate weights
+        # Get OOF predictions to calculate weights
         print('Calculating optimal weights using NNLS and OOF predictions...')
         oof_preds_dict = {}
         _, y_train_all, _, _ = du.get_all_folds_data(dataset_name)
@@ -21,7 +21,7 @@ def train(dataset_name, delta, temperature, save_path, seed):
             config = config_dict['config']
             model_name = config['model']
             print(f'Generating OOF predictions for {model_name}...')
-            oof_preds = tu.get_oof_predictions(dataset_name, config)
+            oof_preds = tu.get_oof_predictions(dataset_name, config, seed)
             oof_preds_dict[model_name] = oof_preds
             
             # Print R2 score for OOF predictions

@@ -39,7 +39,7 @@ def run_cv(
 
     for i in range(n_splits):
         fold_number = i + 1
-        X_train_fold, y_train_fold, X_val_fold, y_val_fold = du.get_fold_data(dataset_name, fold_number)
+        X_train_fold, y_train_fold, X_val_fold, y_val_fold = du.get_fold_data(dataset_name, fold_number, seed)
 
         if y_val_fold is None:
             print(f"[CV][Split {i + 1}] No validation target found. Skipping R2 calculation for this fold.")
@@ -105,8 +105,11 @@ def train(
 
     n_estimators, max_depth, min_samples_leaf, max_features = model_hps
 
-    # Use all folds for final training/testing
-    X_train, y_train, X_test, y_test = du.get_all_folds_data(dataset_name)
+    if dataset_name != du.DATASET_DICT[6]:
+        X_train, y_train, X_test, y_test = du.split_train_test(
+            du.split_features_and_target(du.get_combined_dataset(dataset_name)), seed)
+    else:
+        X_train, y_train, X_test, y_test = du.get_all_folds_data(dataset_name)
 
     if y_test is None:
         y_test = pd.DataFrame()

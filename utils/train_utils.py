@@ -43,7 +43,7 @@ def _extract_top_configs_per_model(path):
 
         obj = json.loads(path.read_text(encoding='utf-8'))
         configs = obj.get('configs', {})
-        data = obj.get('data', [])[::-1] # Reverse the order to get the best configurations first (in MFO case)
+        data = obj.get('data', [])
 
         data_with_config_info = []
 
@@ -60,25 +60,6 @@ def _extract_top_configs_per_model(path):
 
     except Exception as e:
         return None
-
-def get_best_configs(configs, delta=0.003):
-
-    best_configs = [configs[0]]
-
-    for i in range(1, len(configs)):
-        if (configs[i]['cost'] - configs[0]['cost']) <= delta:
-            best_configs.append(configs[i])
-
-    return best_configs
-
-def get_best_model_configs(configs):
-
-    best_model_configs = []
-
-    for config in configs:
-        best_model_configs.append(config['config'])
-
-    return best_model_configs
 
 def get_top_configs_per_model(dataset_name):
 
@@ -110,9 +91,11 @@ def get_weights(best_configs, temperature=0.01):
     return exp_scores / np.sum(exp_scores)
 
 def get_model_hps(config):
+
     """
     Extracts model hyperparameters from a configuration dictionary.
     """
+
     model_name = config['model']
     match model_name:
         case 'ffn':
@@ -186,7 +169,7 @@ def train_final_model(dataset_name, config, seed):
         case _:
             raise ValueError(f"Unsupported model type: {model_name}")
 
-def get_oof_predictions(dataset_name, config):
+def get_oof_predictions(dataset_name, config, seed):
 
     oof_predictions_list = []
     model_name = config['model']
@@ -197,9 +180,9 @@ def get_oof_predictions(dataset_name, config):
 
     for fold in range(1, num_folds + 1):
 
-        print("Evaluating fold", fold, "...")
+        print("Evaluating OOF predictions for fold ", fold, "...")
 
-        X_train_fold, y_train_fold, X_val_fold, y_val_fold = du.get_oof_data(dataset_name, fold)
+        X_train_fold, y_train_fold, X_val_fold, y_val_fold = du.get_oof_data(dataset_name, fold, seed)
 
         if y_val_fold is None or y_val_fold.empty:
              continue
@@ -268,9 +251,8 @@ def get_oof_predictions(dataset_name, config):
                 
                 train_loader = du.get_dataloader(X_train_t, y_train_t, batch_size=batch_size)
                 device = mu.set_device()
-                
-                # Use the setup_model from ffn.py
-                model, optimizer, criterion = ffn.setup_model(
+
+                model, optimizer, loss_function = ffn.setup_model(
                     no_of_feats=X_train_t.shape[1],
                     no_of_layers=no_of_layers,
                     no_of_units=no_of_units,
@@ -284,9 +266,9 @@ def get_oof_predictions(dataset_name, config):
                 for epoch in range(num_epochs):
                     for batch_X, batch_y in train_loader:
                         batch_X, batch_y = batch_X.to(device), batch_y.to(device)
-                        optimizer.zero_grad()
                         outputs = model(batch_X)
-                        loss = criterion(outputs, batch_y)
+                        loss = loss_function(outputs, batch_y)
+                        optimizer.zero_grad()
                         loss.backward()
                         optimizer.step()
 
@@ -303,8 +285,6 @@ def get_oof_predictions(dataset_name, config):
 
     return np.concatenate(oof_predictions_list)
 
-
-
 def find_weights(oof_predictions, y_train):
     
     """
@@ -319,12 +299,9 @@ def find_weights(oof_predictions, y_train):
     """
 
     model_names = list(oof_predictions.keys())
-    # Matrix A: (n_samples, n_models)
     A = np.column_stack([oof_predictions[name] for name in model_names])
-    # Vector b: (n_samples,)
     b = y_train.values.ravel()
-    
-    # Solve NNLS: minimize ||Ax - b||_2 s.t. x >= 0
+
     weights, _ = opt.nnls(A, b)
     
     # Normalize weights so they sum to 1

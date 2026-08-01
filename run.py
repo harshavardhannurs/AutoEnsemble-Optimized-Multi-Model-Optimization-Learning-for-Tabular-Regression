@@ -112,8 +112,6 @@ if __name__=='__main__':
 
         tt.train(
             dataset_name=args.task,
-            delta=args.delta,
-            temperature=args.temperature,
             save_path=args.output_path,
             seed=args.seed,
         )
@@ -127,13 +125,11 @@ if __name__=='__main__':
             walltime_limit=args.hpo_timeout
         )
 
-        tt.train(
-            dataset_name=args.task,
-            delta=args.delta,
-            temperature=args.temperature,
-            seed=args.seed,
-            save_path=args.output_path
-        )
+        # tt.train(
+        #     dataset_name=args.task,
+        #     seed=args.seed,
+        #     save_path=args.output_path
+        # )
 
     if args.hpo == 'smac_mfo':
 
@@ -144,10 +140,16 @@ if __name__=='__main__':
             walltime_limit=args.hpo_timeout
         )
 
-        tt.train(
-            dataset_name=args.task,
-            delta=args.delta,
-            temperature=args.temperature,
-            seed=args.seed,
-            save_path=args.output_path
-        )
+        # tt.train(
+        #     dataset_name=args.task,
+        #     seed=args.seed,
+        #     save_path=args.output_path
+        # )
+
+    # for k, v in DATASET_DICT.items():
+    #     optim.run_mf_optimizer(
+    #         dataset_name=v,
+    #         n_trials=200,
+    #         n_workers=1,
+    #         walltime_limit=86400
+    #     )

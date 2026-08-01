@@ -11,8 +11,78 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
 
 DATASET_DICT = {1: 'bike_sharing_demand', 2: 'brazilian_houses', 3: 'superconductivity', 4: 'wine_quality', 5: 'yprop_4_1', 6: 'exam_dataset'}
+
+def get_combined_dataset(dataset_name):
+
+    """
+    Combines all folds of a dataset into a single DataFrame.
+    """
+
+    utils_dir = Path(__file__).resolve().parent
+
+    project_root = utils_dir.parent
+
+    data_dir = project_root/'data'/dataset_name
+
+    if not data_dir.exists():
+        raise FileNotFoundError(f"Directory does not exist: {data_dir}")
+
+    folds = []
+
+    for fold_dir in data_dir.iterdir():
+        X_train = pd.read_parquet(fold_dir/'X_train.parquet')
+        y_train = pd.read_parquet(fold_dir/'y_train.parquet')
+        X_test = pd.read_parquet(fold_dir/'X_test.parquet')
+        y_test = pd.read_parquet(fold_dir/'y_test.parquet')
+
+        if isinstance(y_train, pd.Series):
+            y_train = y_train.to_frame()
+        if isinstance(y_test, pd.Series):
+            y_test = y_test.to_frame()
+
+        if y_train.shape[1] == 1:
+            y_train.columns = ['target']
+        if y_test.shape[1] == 1:
+            y_test.columns = ['target']
+
+        train_df = pd.concat([X_train.reset_index(drop=True), y_train.reset_index(drop=True)], axis=1)
+        test_df = pd.concat([X_test.reset_index(drop=True), y_test.reset_index(drop=True)], axis=1)
+        # `reset_index()` is used because pandas allows us to assign custom index values to rows. When we reset the index, the original custom indices are removed and replaced with the default integer index (`0, 1, 2, ...`). By default, pandas preserves the old index by storing it as a new column named `"index"`. Setting `drop=True` prevents this extra column from being created and discards the old index completely.
+
+        fold_df = pd.concat([train_df, test_df], ignore_index=True)
+        # ignore_index=True tells pandas to discard the original row indices when combining DataFrames and create a new default integer index (0, 1, 2, ...) for the resulting DataFrame. Without it, pandas preserves the original indices, which can lead to duplicate index values after operations like concat().
+        folds.append(fold_df)
+        # we can append any type of object to a python list (numerical, dictionary, custom objects, etc.). Also, it need not be a homogenous collection.
+
+    dataset = pd.concat(folds, ignore_index=True)
+
+    dataset = dataset.drop_duplicates().reset_index(drop=True)
+
+    return eng_features(dataset_name, dataset)
+
+def split_features_and_target(df, target_column='target'):
+
+    """
+    Splits the DataFrame into features (X) and target (y).
+    """
+
+    X = df.drop(columns=[target_column])
+    y = df[target_column].to_frame(name=getattr(df[target_column], "name", "target"))
+
+    return X, y
+
+def split_train_test(X, y, test_size=0.2, seed=42):
+
+    """
+    Split the data into train and test sets.
+    """
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=True, random_state=seed)
+
+    return X_train, X_test, y_train, y_test
 
 def get_num_folds(dataset_name):
 
@@ -25,7 +95,7 @@ def get_num_folds(dataset_name):
 
     utils_dir = Path(__file__).resolve().parent
     project_root = utils_dir.parent
-    data_dir = project_root/'data'/dataset_name
+    data_dir = project_root / 'data' / dataset_name
 
     if not data_dir.exists():
         return 0
@@ -36,10 +106,10 @@ def get_num_folds(dataset_name):
             num_folds += 1
     return num_folds
 
-def get_fold_data(dataset_name, fold_number):
+def get_fold_data(dataset_name, fold_number, seed=42):
     
     """
-    Returns X_train, y_train, X_test, y_test for a specific fold of a dataset.
+    Returns X_train, y_train, X_val, y_val for a specific fold of a dataset.
     """
     
     if dataset_name == DATASET_DICT[6]:
@@ -47,14 +117,14 @@ def get_fold_data(dataset_name, fold_number):
         # fold_number here will be 1 to 10
         utils_dir = Path(__file__).resolve().parent
         project_root = utils_dir.parent
-        base_fold_dir = project_root/'data'/dataset_name/'1'
+        base_fold_dir = project_root / 'data' / dataset_name / '1'
         
         X_train_full = pd.read_parquet(base_fold_dir/'X_train.parquet').reset_index(drop=True)
         y_train_full = pd.read_parquet(base_fold_dir/'y_train.parquet').reset_index(drop=True)
         X_test_all = pd.read_parquet(base_fold_dir/'X_test.parquet').reset_index(drop=True)
         
         # We use a fixed seed for KFold to ensure consistency across calls
-        kf = KFold(n_splits=10, shuffle=True, random_state=42)
+        kf = KFold(n_splits=10, shuffle=True, random_state=seed)
         folds = list(kf.split(X_train_full))
         
         train_idx, val_idx = folds[fold_number - 1]
@@ -85,50 +155,48 @@ def get_fold_data(dataset_name, fold_number):
 
     utils_dir = Path(__file__).resolve().parent
     project_root = utils_dir.parent
-    fold_dir = project_root/'data'/dataset_name/str(fold_number)
+    fold_dir = project_root / 'data' / dataset_name / str(fold_number)
 
     if not fold_dir.exists():
         raise FileNotFoundError(f"Fold directory does not exist: {fold_dir}")
 
     X_train = pd.read_parquet(fold_dir/'X_train.parquet').reset_index(drop=True)
     y_train = pd.read_parquet(fold_dir/'y_train.parquet').reset_index(drop=True)
-    X_test = pd.read_parquet(fold_dir/'X_test.parquet').reset_index(drop=True)
+    X_val = pd.read_parquet(fold_dir/'X_test.parquet').reset_index(drop=True)
 
-    y_test_path = fold_dir/'y_test.parquet'
-    if y_test_path.exists():
-        y_test = pd.read_parquet(y_test_path).reset_index(drop=True)
+    y_val_path = fold_dir/'y_test.parquet'
+    if y_val_path.exists():
+        y_val = pd.read_parquet(y_val_path).reset_index(drop=True)
     else:
-        y_test = None
+        y_val = None
 
     if isinstance(y_train, pd.Series):
         y_train = y_train.to_frame()
-    if y_test is not None and isinstance(y_test, pd.Series):
-        y_test = y_test.to_frame()
+    if y_val is not None and isinstance(y_val, pd.Series):
+        y_val = y_val.to_frame()
 
     if y_train.shape[1] == 1:
         y_train.columns = ['target']
-    if y_test is not None and y_test.shape[1] == 1:
-        y_test.columns = ['target']
+    if y_val is not None and y_val.shape[1] == 1:
+        y_val.columns = ['target']
 
     # Apply feature engineering
     X_train = eng_features(dataset_name, X_train)
-    X_test = eng_features(dataset_name, X_test)
+    X_val = eng_features(dataset_name, X_val)
 
-    return X_train, y_train, X_test, y_test
+    return X_train, y_train, X_val, y_val
 
 def get_all_folds_data(dataset_name):
+
     """
     Returns X_train, y_train, X_test, y_test combined from all folds.
-    For bike_sharing_demand and others where X_train of one fold contains 
-    X_test of others, we use the union of all X_test as the 'full' dataset 
-    to avoid redundant training and leakage during OOF evaluation.
     """
     
     if dataset_name == DATASET_DICT[6]:
         # Special handling for exam_dataset
         utils_dir = Path(__file__).resolve().parent
         project_root = utils_dir.parent
-        fold_dir = project_root/'data'/dataset_name/'1'
+        fold_dir = project_root / 'data' / dataset_name / '1'
         
         X_train = pd.read_parquet(fold_dir/'X_train.parquet').reset_index(drop=True)
         y_train = pd.read_parquet(fold_dir/'y_train.parquet').reset_index(drop=True)
@@ -143,6 +211,10 @@ def get_all_folds_data(dataset_name):
         X_test = eng_features(dataset_name, X_test)
         
         return X_train, y_train, X_test, pd.DataFrame(columns=y_train.columns)
+
+    # For bike_sharing_demand and others, since the dataset is readily split into training and validation sets
+    # for each fold, we use the union of all X_test as the 'full' dataset
+    # to avoid redundant training and leakage during OOF evaluation.
 
     num_folds = get_num_folds(dataset_name)
     X_test_list, y_test_list = [], []
@@ -160,14 +232,10 @@ def get_all_folds_data(dataset_name):
         y_train_full = pd.concat(y_test_list, axis=0).reset_index(drop=True)
     else:
         y_train_full = None
-    
-    # For these datasets, X_test is actually hidden or not provided in the same way.
-    # Usually, we want to return the same X_test as in get_fold_data(1) if it exists.
-    _, _, X_test, y_test = get_fold_data(dataset_name, 1)
-        
-    return X_train_full, y_train_full, X_test, y_test
 
-def get_oof_data(dataset_name, val_fold_number):
+    return X_train_full, y_train_full
+
+def get_oof_data(dataset_name, val_fold_number, seed):
 
     """
     Returns X_train, y_train and X_val, y_val for a specific fold.
@@ -177,12 +245,9 @@ def get_oof_data(dataset_name, val_fold_number):
 
     if dataset_name == DATASET_DICT[6]:
         # For exam_dataset, get_fold_data already does the splitting
-        return get_fold_data(dataset_name, val_fold_number)
+        return get_fold_data(dataset_name, val_fold_number, seed)
 
-    # For other datasets, each fold directory already provides an X_train and its corresponding X_test (validation)
-    # Combining X_train from other folds would cause leakage because X_train of one fold 
-    # contains X_test of other folds.
-    return get_fold_data(dataset_name, val_fold_number)
+    return get_fold_data(dataset_name, val_fold_number, seed)
 
 
 def eng_features(dataset_name, df):
