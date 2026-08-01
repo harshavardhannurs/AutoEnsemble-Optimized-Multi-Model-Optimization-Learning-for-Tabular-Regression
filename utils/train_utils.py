@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import pickle
 
 import numpy as np
 
@@ -169,8 +170,22 @@ def train_final_model(dataset_name, config, seed):
 
 def get_oof_predictions(dataset_name, config, seed):
 
-    oof_predictions_list = []
     model_name = config['model']
+
+    path = Path(__file__).resolve().parent.parent / 'outputs' / 'model_oof_predictions' / f'{model_name}_oof_predictions.pkl'
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    obj = dict({})
+
+    if path.exists():
+        with open(path, 'rb') as f:
+            obj = pickle.load(f)
+        oof_predictions = obj.get(dataset_name, None)
+        print(f"OOF predictions for {dataset_name} already exist. Returning cached predictions.")
+        if oof_predictions is not None:
+            return oof_predictions
+
+    oof_predictions_list = []
     num_folds = du.get_num_folds(dataset_name)
 
     # Determine model_hps based on model type
@@ -280,6 +295,10 @@ def get_oof_predictions(dataset_name, config, seed):
                 y_hat = mu.inverse_transform_target(y_hat, transformer_y)
 
         oof_predictions_list.append(y_hat.flatten())
+
+    with open(path, 'wb') as f:
+        obj[dataset_name] =  np.concatenate(oof_predictions_list) # writes a new entry to the old dictionary
+        pickle.dump(obj, f)
 
     return np.concatenate(oof_predictions_list)
 

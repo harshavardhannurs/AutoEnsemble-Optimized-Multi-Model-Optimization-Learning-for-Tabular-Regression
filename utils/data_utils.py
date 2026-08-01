@@ -33,6 +33,13 @@ def get_combined_dataset(dataset_name):
     folds = []
 
     for fold_dir in data_dir.iterdir():
+
+        # Skip hidden/system entries like macOS .DS_Store and any non-fold files
+        if fold_dir.name.startswith('.'):
+            continue
+        if not fold_dir.is_dir():
+            continue
+
         X_train = pd.read_parquet(fold_dir/'X_train.parquet')
         y_train = pd.read_parquet(fold_dir/'y_train.parquet')
         X_test = pd.read_parquet(fold_dir/'X_test.parquet')
