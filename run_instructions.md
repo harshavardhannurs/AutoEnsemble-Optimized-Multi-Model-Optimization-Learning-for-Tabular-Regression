@@ -143,9 +143,7 @@ python run.py \
     --hpo <facade_of_choice> \
     --hpo-trials <number_of_trials> \
     --hpo-workers <number_of_workers> \
-    --hpo-timeout <timeout_in_seconds> \
-    --delta <delta> \
-    --temperature <temperature>
+    --hpo-timeout <timeout_in_seconds> 
 ```
 
 ---
@@ -161,9 +159,6 @@ python run.py \
 | `--hpo-trials` | ❌ | `200` | Number of optimization trials. |
 | `--hpo-workers` | ❌ | `1` | Number of parallel workers used by the optimizer. |
 | `--hpo-timeout` | ❌ | `86400` | Maximum optimization time (in seconds). |
-| `--delta` | ❌ | `0.003` | Acceptable performance difference used during model selection. |
-| `--temperature` | ❌ | `0.01` | Controls how strongly better-performing models are weighted in the final ensemble. Lower values give more weight to the best models. |
-
 ---
 
 ## Behavior of `--hpo`
