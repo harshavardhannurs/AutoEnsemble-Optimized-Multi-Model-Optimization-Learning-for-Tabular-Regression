@@ -47,8 +47,26 @@ python -m pip install -r requirements.txt
 ### Download the Local TabPFN Model
 
 The project loads TabPFN from a local checkpoint instead of downloading the
-model while a run is in progress. From the project root, download the official
-TabPFN v3 regressor checkpoint with:
+model while a run is in progress. From the project root, use the command for
+your operating system to download the official TabPFN v3 regressor checkpoint.
+
+#### Windows PowerShell
+
+```powershell
+curl.exe -L --fail `
+  "https://huggingface.co/Prior-Labs/tabpfn_3/resolve/main/tabpfn-v3-regressor-v3_default.ckpt" `
+  --output "tabpfn-v3-regressor-v3_default.ckpt"
+```
+
+#### Windows Command Prompt (CMD)
+
+```cmd
+curl.exe -L --fail ^
+  "https://huggingface.co/Prior-Labs/tabpfn_3/resolve/main/tabpfn-v3-regressor-v3_default.ckpt" ^
+  --output "tabpfn-v3-regressor-v3_default.ckpt"
+```
+
+#### Linux
 
 ```bash
 curl -L --fail \
@@ -56,10 +74,24 @@ curl -L --fail \
   --output tabpfn-v3-regressor-v3_default.ckpt
 ```
 
-Confirm that the checkpoint exists:
+#### macOS
+
+```bash
+curl -L --fail \
+  "https://huggingface.co/Prior-Labs/tabpfn_3/resolve/main/tabpfn-v3-regressor-v3_default.ckpt" \
+  --output tabpfn-v3-regressor-v3_default.ckpt
+```
+
+Confirm that the checkpoint exists on Linux or macOS:
 
 ```bash
 ls -lh tabpfn-v3-regressor-v3_default.ckpt
+```
+
+On Windows PowerShell, verify it with:
+
+```powershell
+Get-Item "tabpfn-v3-regressor-v3_default.ckpt"
 ```
 
 Keep this file in the project root. To store it elsewhere, set its absolute
