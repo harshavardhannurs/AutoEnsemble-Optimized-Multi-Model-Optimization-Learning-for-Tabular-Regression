@@ -233,7 +233,7 @@ def get_all_folds_data(dataset_name):
     else:
         y_train_full = None
 
-    return X_train_full, y_train_full
+    return X_train_full, y_train_full, None, None
 
 def get_oof_data(dataset_name, val_fold_number, seed):
 
