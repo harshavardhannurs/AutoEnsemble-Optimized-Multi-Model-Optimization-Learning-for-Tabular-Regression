@@ -92,12 +92,12 @@ def train(dataset_name, save_path, seed):
             base_config.get('no_of_units'),
             base_config.get('weight_decay'),
             base_config.get('batch_norm'),
-            1 # num_epochs
+            base_config.get('num_epochs')
         )
 
         m, y_test, y_hat = ffn.train(dataset_name=dataset_name, model_hps=model_hps, seed=seed)
 
-        if y_test is not None:
+        if len(y_test) > 0:
             score = r2_score(y_test, y_hat)
             print(f'Baseline FFN R2 score: {score:.4f}')
 

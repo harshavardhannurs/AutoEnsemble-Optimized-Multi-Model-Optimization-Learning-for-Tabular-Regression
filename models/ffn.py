@@ -248,7 +248,7 @@ def train(
     X_test = du.to_dense(transformer_X.transform(X_test))
     y_train = transformer_y.fit_transform(y_train)
 
-    if y_test is not None:
+    if y_test.shape[0] != 0:
         y_test = transformer_y.transform(y_test)
         y_test = mu.inverse_transform_target(y_test, transformer_y)
     else:
