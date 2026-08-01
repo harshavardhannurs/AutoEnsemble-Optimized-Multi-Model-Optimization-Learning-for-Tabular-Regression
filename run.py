@@ -84,28 +84,6 @@ if __name__=='__main__':
         ),
     )
 
-    parser.add_argument(
-        "--delta",
-        type=float,
-        default=0.003,
-        help=(
-            "Maximum acceptable difference from the best optimization cost when "
-            "selecting models for the ensemble. "
-            "Default is 0.003."
-        )
-    )
-
-    parser.add_argument(
-        "--temperature",
-        type=float,
-        default=0.01,
-        help=(
-            "Controls how strongly better-performing models are weighted in the "
-            "ensemble. Lower values place more emphasis on the best models. "
-            "Default is 0.01."
-        )
-    )
-
     args = parser.parse_args()
 
     if args.hpo == 'off':

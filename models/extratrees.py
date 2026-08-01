@@ -106,8 +106,8 @@ def train(
     n_estimators, max_depth, min_samples_leaf, max_features = model_hps
 
     if dataset_name != du.DATASET_DICT[6]:
-        X_train, y_train, X_test, y_test = du.split_train_test(
-            du.split_features_and_target(du.get_combined_dataset(dataset_name)), seed)
+        X_train, X_test, y_train, y_test = du.split_train_test(
+            *du.split_features_and_target(du.get_combined_dataset(dataset_name)), seed)
     else:
         X_train, y_train, X_test, y_test = du.get_all_folds_data(dataset_name)
 
