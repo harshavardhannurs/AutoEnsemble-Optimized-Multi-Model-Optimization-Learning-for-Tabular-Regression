@@ -44,6 +44,35 @@ python -m pip install --upgrade pip setuptools wheel
 python -m pip install -r requirements.txt
 ```
 
+### Download the Local TabPFN Model
+
+The project loads TabPFN from a local checkpoint instead of downloading the
+model while a run is in progress. From the project root, download the official
+TabPFN v3 regressor checkpoint with:
+
+```bash
+curl -L --fail \
+  "https://huggingface.co/Prior-Labs/tabpfn_3/resolve/main/tabpfn-v3-regressor-v3_default.ckpt" \
+  --output tabpfn-v3-regressor-v3_default.ckpt
+```
+
+Confirm that the checkpoint exists:
+
+```bash
+ls -lh tabpfn-v3-regressor-v3_default.ckpt
+```
+
+Keep this file in the project root. To store it elsewhere, set its absolute
+path before running the project:
+
+```bash
+export AUTOML_TABPFN_MODEL_PATH="/absolute/path/to/tabpfn-v3-regressor-v3_default.ckpt"
+```
+
+The checkpoint is intentionally excluded from Git because it is a large binary
+file. Once it is downloaded, TabPFN can load it without an internet connection.
+The project configures TabPFN to run on the CPU; CUDA is not required.
+
 
 ---
 

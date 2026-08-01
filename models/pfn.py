@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -5,6 +8,49 @@ from tabpfn import TabPFNRegressor
 
 import utils.data_utils as du
 import utils.model_utils as mu
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_TABPFN_CHECKPOINT = PROJECT_ROOT / 'tabpfn-v3-regressor-v3_default.ckpt'
+
+
+def get_checkpoint_path():
+    """Return the local TabPFN checkpoint path and prevent online fallback."""
+
+    configured_path = os.environ.get('AUTOML_TABPFN_MODEL_PATH')
+    checkpoint_path = Path(configured_path).expanduser() if configured_path else DEFAULT_TABPFN_CHECKPOINT
+
+    if not checkpoint_path.is_absolute():
+        checkpoint_path = PROJECT_ROOT / checkpoint_path
+
+    checkpoint_path = checkpoint_path.resolve()
+
+    if not checkpoint_path.is_file():
+        raise FileNotFoundError(
+            'Local TabPFN checkpoint not found at '
+            f"'{checkpoint_path}'. Place tabpfn-v3-regressor-v3_default.ckpt "
+            'in the project root or set AUTOML_TABPFN_MODEL_PATH.'
+        )
+
+    return checkpoint_path
+
+
+def create_regressor(n_estimators, subsample_cap, seed=42):
+    """Create TabPFN using only the checkpoint stored on the local filesystem."""
+
+    checkpoint_path = get_checkpoint_path()
+    print(f'Using local TabPFN checkpoint: {checkpoint_path}')
+
+    return TabPFNRegressor(
+        model_path=checkpoint_path,
+        device='cpu',
+        n_estimators=int(n_estimators),
+        ignore_pretraining_limits=True,
+        inference_config={
+            'SUBSAMPLE_SAMPLES': int(subsample_cap),
+        },
+        random_state=seed
+    )
 
 def run_cv(
         dataset_name,
@@ -40,13 +86,10 @@ def run_cv(
         train_size = X_train_fold.shape[0]
         subsample_cap = 900 if train_size > 6000 else train_size
 
-        model = TabPFNRegressor(
+        model = create_regressor(
             n_estimators=n_estimators,
-            ignore_pretraining_limits=True,
-            inference_config={
-                'SUBSAMPLE_SAMPLES': subsample_cap,
-            },
-            random_state=seed
+            subsample_cap=subsample_cap,
+            seed=seed
         )
 
         model.fit(X_train_fold, y_train_fold)
@@ -110,13 +153,10 @@ def train(
     else:
         n_estimators = 8 # Default
 
-    model = TabPFNRegressor(
+    model = create_regressor(
         n_estimators=n_estimators,
-        ignore_pretraining_limits=True,
-        inference_config= {
-            'SUBSAMPLE_SAMPLES': subsample_cap,
-        },
-        random_state=seed
+        subsample_cap=subsample_cap,
+        seed=seed
     )
     # To prevent OOM errors (during testing, TabPFN on MPS failed when training data size was approximately greater than 6000)
 

@@ -7,8 +7,6 @@ import torch
 
 import scipy.optimize as opt
 
-from tabpfn import TabPFNRegressor
-
 import models.ffn as ffn
 import models.randomforest as rf
 import models.xgb as xgb
@@ -229,10 +227,10 @@ def get_oof_predictions(dataset_name, config, seed):
                 else:
                     n_estimators = model_hps
 
-                model = TabPFNRegressor(
+                model = pfn.create_regressor(
                     n_estimators=n_estimators,
-                    ignore_pretraining_limits=True,
-                    inference_config={'SUBSAMPLE_SAMPLES': subsample_cap}
+                    subsample_cap=subsample_cap,
+                    seed=seed
                 )
                 transformer_X, _ = du.data_transformer(X_train_fold, y_train_fold)
                 X_train_fold_t = transformer_X.fit_transform(X_train_fold)
