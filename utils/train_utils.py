@@ -298,7 +298,11 @@ def find_weights(oof_predictions, y_train):
 
     model_names = list(oof_predictions.keys())
     A = np.column_stack([oof_predictions[name] for name in model_names])
-    b = y_train.values.ravel()
+
+    if isinstance(y_train, np.ndarray):
+        b = y_train.ravel()
+    else:
+        b = y_train.values.ravel()
 
     weights, _ = opt.nnls(A, b)
     
