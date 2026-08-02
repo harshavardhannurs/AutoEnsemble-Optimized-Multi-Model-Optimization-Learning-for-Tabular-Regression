@@ -1,5 +1,4 @@
 from pathlib import Path
-import hashlib
 import json
 import pickle
 
@@ -18,28 +17,6 @@ import models.hgb as hgb
 
 import utils.data_utils as du
 import utils.model_utils as mu
-
-
-OOF_CACHE_VERSION = 2
-
-
-def _json_default(value):
-    if hasattr(value, 'item'):
-        return value.item()
-    raise TypeError(f"Value of type {type(value).__name__} is not JSON serializable.")
-
-
-def _config_fingerprint(config):
-    """Create a stable identifier for the exact model configuration."""
-
-    config_values = dict(config)
-    payload = json.dumps(
-        config_values,
-        sort_keys=True,
-        separators=(',', ':'),
-        default=_json_default,
-    )
-    return hashlib.sha256(payload.encode('utf-8')).hexdigest()
 
 def _extract_top_unique_data_configs(data):
 
@@ -196,7 +173,6 @@ def train_final_model(dataset_name, config, seed):
 def get_oof_predictions(dataset_name, config, seed):
 
     model_name = config['model']
-    config_fingerprint = _config_fingerprint(config)
 
     path = Path(__file__).resolve().parent.parent / 'outputs' / 'oof_predictions' / f'{dataset_name}_oof_predictions.pkl'
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -209,15 +185,15 @@ def get_oof_predictions(dataset_name, config, seed):
         obj = data.get(seed, None)
 
         if obj is not None:
-            cache_entry = obj.get(model_name, None)
-            if (
-                isinstance(cache_entry, dict)
-                and cache_entry.get('cache_version') == OOF_CACHE_VERSION
-                and cache_entry.get('config_fingerprint') == config_fingerprint
-            ):
-                oof_predictions = np.asarray(
-                    cache_entry.get('predictions', [])
-                ).ravel()
+            oof_predictions = obj.get(model_name, None)
+            if oof_predictions is not None:
+                if isinstance(oof_predictions, (list, tuple)):
+                    oof_predictions = np.concatenate([
+                        np.asarray(fold_predictions).ravel()
+                        for fold_predictions in oof_predictions
+                    ])
+                else:
+                    oof_predictions = np.asarray(oof_predictions).ravel()
 
                 _, expected_targets, _, _ = du.get_all_folds_data(
                     dataset_name,
@@ -232,11 +208,6 @@ def get_oof_predictions(dataset_name, config, seed):
                 print(
                     f"Ignoring invalid cached OOF predictions for {dataset_name}/{model_name}: "
                     f"expected {expected_length}, found {len(oof_predictions)}."
-                )
-            elif cache_entry is not None:
-                print(
-                    f"Ignoring stale OOF cache for {dataset_name}/{model_name}: "
-                    "the configuration or split protocol changed."
                 )
 
     print("No cached OOF predictions found. Generating new predictions...")
@@ -357,11 +328,7 @@ def get_oof_predictions(dataset_name, config, seed):
     if seed not in data:
         data[seed] = {}
     
-    data[seed][model_name] = {
-        'cache_version': OOF_CACHE_VERSION,
-        'config_fingerprint': config_fingerprint,
-        'predictions': oof_predictions,
-    }
+    data[seed][model_name] = oof_predictions
 
     temporary_path = path.with_suffix('.pkl.tmp')
     with open(temporary_path, 'wb') as f:
