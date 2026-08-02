@@ -1,0 +1,300 @@
+{
+  "incumbent_ids": [
+    91
+  ],
+  "rejected_config_ids": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    1,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    77,
+    52,
+    78,
+    79,
+    76,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    92,
+    93,
+    94,
+    80,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    147,
+    148,
+    149,
+    150,
+    151,
+    152,
+    153,
+    154,
+    155
+  ],
+  "incumbents_changed": 5,
+  "trajectory": [
+    {
+      "config_ids": [
+        1
+      ],
+      "costs": [
+        0.48361485960773787
+      ],
+      "trial": 1,
+      "walltime": 9.98882007598877
+    },
+    {
+      "config_ids": [
+        52
+      ],
+      "costs": [
+        0.4813249133281168
+      ],
+      "trial": 76,
+      "walltime": 3674.888551712036
+    },
+    {
+      "config_ids": [
+        76
+      ],
+      "costs": [
+        0.48113729340309774
+      ],
+      "trial": 98,
+      "walltime": 4163.850974559784
+    },
+    {
+      "config_ids": [
+        80
+      ],
+      "costs": [
+        0.4816226499788442
+      ],
+      "trial": 104,
+      "walltime": 4320.596333742142
+    },
+    {
+      "config_ids": [
+        91
+      ],
+      "costs": [
+        0.4798211263466581
+      ],
+      "trial": 123,
+      "walltime": 4966.86504983902
+    }
+  ],
+  "state": {
+    "tracker": {
+      "0,0": [
+        [
+          0,
+          [
+            {
+              "model": "extratrees",
+              "max_depth_et": 5,
+              "max_features_et": 0.3,
+              "min_samples_leaf_et": 1,
+              "n_estimators_et": 200
+            },
+            {
+              "model": "xgb",
+              "colsample_bytree": 0.8231824991399,
+              "learning_rate_xgb": 0.0647092212835,
+              "max_depth_xgb": 8,
+              "n_estimators_xgb": 1000,
+              "reg_lambda": 2.276989987123,
+              "subsample": 0.8139724458265
+            },
+            {
+              "model": "extratrees",
+              "max_depth_et": 5,
+              "max_features_et": 0.3,
+              "min_samples_leaf_et": 1,
+              "n_estimators_et": 50
+            },
+            {
+              "model": "extratrees",
+              "max_depth_et": 5,
+              "max_features_et": 0.3,
+              "min_samples_leaf_et": 1,
+              "n_estimators_et": 500
+            },
+            {
+              "model": "extratrees",
+              "max_depth_et": "None",
+              "max_features_et": 0.7,
+              "min_samples_leaf_et": 1,
+              "n_estimators_et": 100
+            },
+            {
+              "model": "hgb",
+              "l2_reg_hgb": 1.5331324525923,
+              "learning_rate_hgb": 0.0118965221262,
+              "max_bins_hgb": 255,
+              "max_features_hgb": 1.0,
+              "max_iter_hgb": 300,
+              "max_leaf_nodes_hgb": 222,
+              "min_samples_leaf_hgb": 89
+            },
+            {
+              "model": "hgb",
+              "l2_reg_hgb": 9.5163968264334,
+              "learning_rate_hgb": 0.1641812202084,
+              "max_bins_hgb": 64,
+              "max_features_hgb": 0.5,
+              "max_iter_hgb": 1000,
+              "max_leaf_nodes_hgb": 201,
+              "min_samples_leaf_hgb": 83
+            },
+            {
+              "model": "extratrees",
+              "max_depth_et": 10,
+              "max_features_et": 0.5,
+              "min_samples_leaf_et": 12,
+              "n_estimators_et": 100
+            },
+            {
+              "model": "ffn",
+              "batch_norm": false,
+              "batch_size": 128,
+              "learning_rate_ffn": 0.0004020588001,
+              "no_of_layers": 4,
+              "no_of_units": 512,
+              "num_epochs": 500,
+              "weight_decay": 0.0084334120123
+            }
+          ]
+        ]
+      ]
+    },
+    "next_bracket": 1
+  }
+}

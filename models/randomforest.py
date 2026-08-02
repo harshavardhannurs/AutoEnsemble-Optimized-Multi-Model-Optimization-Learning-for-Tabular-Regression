@@ -1,59 +1,57 @@
 import numpy as np
+import pandas as pd
 
-from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestRegressor
 
 import utils.data_utils as du
 import utils.model_utils as mu
 
-def prepare_data(dataset_name):
-
-    data = du.get_combined_dataset(dataset_name)
-    X, y = du.split_features_and_target(data)
-    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2)
-
-    return X_train, X_test, y_train, y_test
-
 def setup_model(
         n_estimators,
         max_depth,
         min_samples_leaf,
-        max_features
+        max_features,
+        seed=42
 ):
     rfr = RandomForestRegressor(
         n_estimators=n_estimators,
         max_depth=max_depth,
         min_samples_leaf=min_samples_leaf,
         max_features=max_features,
-        n_jobs=-1,
-        random_state=42
+        n_jobs=1,
+        random_state=seed
     )
     return rfr
 
 def run_cv(
-        X_train,
-        y_train,
+        dataset_name,
         model_hps,
-        n_splits=10
+        n_splits=None,
+        seed=42
 ):
 
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+    if n_splits is None:
+        n_splits = du.get_num_folds(dataset_name)
 
     r2_score_across_folds = np.zeros((n_splits,))
 
     n_estimators, max_depth, min_samples_leaf, max_features = model_hps
 
-    for i, (train_indices, val_indices) in enumerate(kf.split(X_train)):
+    for i in range(n_splits):
+        fold_number = i + 1
+        X_train_fold, y_train_fold, X_val_fold, y_val_fold = du.get_fold_data(dataset_name, fold_number, seed)
 
-        X_train_fold = X_train.iloc[train_indices]
-        X_val_fold = X_train.iloc[val_indices]
-        y_train_fold = y_train.iloc[train_indices]
-        y_val_fold = y_train.iloc[val_indices]
+        if y_val_fold is None:
+            print(f"[CV][Split {i + 1}] No validation target found. Skipping R2 calculation for this fold.")
+            continue
 
         transformer_X, _ = du.data_transformer(X_train_fold, y_train_fold, scale_numeric=False, impute_missing=False)
 
         X_train_fold = transformer_X.fit_transform(X_train_fold)
         X_val_fold = transformer_X.transform(X_val_fold)
+
+        X_train_fold = du.to_dense(X_train_fold)
+        X_val_fold = du.to_dense(X_val_fold)
 
         # No need to transform the target as random forests split features like: xj < threshold. Scaling only adds complexity
 
@@ -65,6 +63,7 @@ def run_cv(
             max_depth=max_depth,
             min_samples_leaf=min_samples_leaf,
             max_features=max_features,
+            seed=seed
         )
 
         model.fit(X_train_fold, y_train_fold)
@@ -74,6 +73,12 @@ def run_cv(
 
         r2_score_across_folds[i] = mu.get_r2_score(y_val_fold, y_hat)
 
+        print(
+            f"[CV][Split {i + 1}] "
+            f"Model=Random Forest, "
+            f"R2={r2_score_across_folds[i]:.4f}"
+        )
+
     return r2_score_across_folds
 
 def pipelined_model(
@@ -82,36 +87,58 @@ def pipelined_model(
         max_depth,
         min_samples_leaf,
         max_features,
-        n_splits=10
+        n_splits=None,
+        seed=42
 ):
-    X_train, X_test, y_train, y_test = prepare_data(dataset_name)
 
     model_hps = (n_estimators, max_depth, min_samples_leaf, max_features)
 
     r2_score_across_folds = run_cv(
-        X_train=X_train,
-        y_train=y_train,
+        dataset_name=dataset_name,
         model_hps=model_hps,
-        n_splits=n_splits
+        n_splits=n_splits,
+        seed=seed
     )
 
     return r2_score_across_folds
 
-if __name__ == '__main__':
-    r2_score_across_folds = pipelined_model(
-        dataset_name='bike_sharing_demand',
-        n_estimators=100,
-        max_depth=None,
-        min_samples_leaf=3,
-        max_features=0.7,
-        n_splits=10
+def train(
+        dataset_name,
+        model_hps,
+        seed=42
+):
+    n_estimators, max_depth, min_samples_leaf, max_features = model_hps
+
+    if dataset_name != du.DATASET_DICT[6]:
+        X_train, X_test, y_train, y_test = du.split_train_test(
+            *du.split_features_and_target(du.get_combined_dataset(dataset_name)), seed=seed)
+    else:
+        X_train, y_train, X_test, y_test = du.get_all_folds_data(dataset_name)
+
+    if y_test is None:
+        y_test = pd.DataFrame()
+
+    transformer_X, _ = du.data_transformer(X_train, y_train, scale_numeric=False, impute_missing=False)
+    X_train = du.to_dense(transformer_X.fit_transform(X_train))
+    X_test = du.to_dense(transformer_X.transform(X_test))
+    y_train = y_train.values.ravel()
+    y_test = y_test.values.ravel()
+
+    model = setup_model(
+        n_estimators=n_estimators,
+        max_depth=max_depth,
+        min_samples_leaf=min_samples_leaf,
+        max_features=max_features,
+        seed=seed
     )
 
-    print("The current hyperparameter configuration for Random Forest yields an average R2 Score of",
-          mu.average(r2_score_across_folds))
+    print('Training Random Forest...')
+    model.fit(X_train, y_train)
 
+    print('Evaluating Random Forest on test set...')
+    y_hat = model.predict(X_test)
 
+    return model, y_test, y_hat
 
-
-
-
+if __name__ == '__main__':
+    pass

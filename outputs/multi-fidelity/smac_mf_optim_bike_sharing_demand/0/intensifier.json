@@ -1,0 +1,352 @@
+{
+  "incumbent_ids": [
+    138
+  ],
+  "rejected_config_ids": [
+    1,
+    3,
+    2,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    4,
+    77,
+    78,
+    76,
+    80,
+    81,
+    82,
+    79,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    83,
+    129,
+    130,
+    131,
+    132,
+    128,
+    134,
+    135,
+    136,
+    137,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    133,
+    146,
+    147,
+    148,
+    149,
+    150,
+    151,
+    152,
+    153,
+    154,
+    155
+  ],
+  "incumbents_changed": 9,
+  "trajectory": [
+    {
+      "config_ids": [
+        1
+      ],
+      "costs": [
+        0.08568294657122011
+      ],
+      "trial": 1,
+      "walltime": 21.037224531173706
+    },
+    {
+      "config_ids": [
+        2
+      ],
+      "costs": [
+        0.0719688429052534
+      ],
+      "trial": 2,
+      "walltime": 26.633912324905396
+    },
+    {
+      "config_ids": [
+        4
+      ],
+      "costs": [
+        0.06619873046875002
+      ],
+      "trial": 4,
+      "walltime": 744.2459378242493
+    },
+    {
+      "config_ids": [
+        76
+      ],
+      "costs": [
+        0.06554644521401798
+      ],
+      "trial": 96,
+      "walltime": 10730.16743183136
+    },
+    {
+      "config_ids": [
+        79
+      ],
+      "costs": [
+        0.0666254181287359
+      ],
+      "trial": 103,
+      "walltime": 11171.73750591278
+    },
+    {
+      "config_ids": [
+        83
+      ],
+      "costs": [
+        0.06684614193057015
+      ],
+      "trial": 108,
+      "walltime": 13482.403133869171
+    },
+    {
+      "config_ids": [
+        128
+      ],
+      "costs": [
+        0.06580668639804976
+      ],
+      "trial": 163,
+      "walltime": 27475.48449897766
+    },
+    {
+      "config_ids": [
+        133
+      ],
+      "costs": [
+        0.06347130257578848
+      ],
+      "trial": 172,
+      "walltime": 28426.23671936989
+    },
+    {
+      "config_ids": [
+        138
+      ],
+      "costs": [
+        0.06243546777131459
+      ],
+      "trial": 186,
+      "walltime": 29967.940262556076
+    }
+  ],
+  "state": {
+    "tracker": {
+      "0,0": [
+        [
+          0,
+          [
+            {
+              "model": "randomforest",
+              "max_depth_rf": "None",
+              "max_features_rf": 0.5,
+              "min_samples_leaf_rf": 3,
+              "n_estimators_rf": 500
+            },
+            {
+              "model": "hgb",
+              "l2_reg_hgb": 0.583920370617,
+              "learning_rate_hgb": 0.010397463158,
+              "max_bins_hgb": 128,
+              "max_features_hgb": 0.7,
+              "max_iter_hgb": 800,
+              "max_leaf_nodes_hgb": 93,
+              "min_samples_leaf_hgb": 11
+            },
+            {
+              "model": "xgb",
+              "colsample_bytree": 0.8788580779166,
+              "learning_rate_xgb": 0.0045160010587,
+              "max_depth_xgb": 4,
+              "n_estimators_xgb": 100,
+              "reg_lambda": 0.00213032826,
+              "subsample": 0.8228646701292
+            },
+            {
+              "model": "ffn",
+              "batch_norm": false,
+              "batch_size": 128,
+              "learning_rate_ffn": 0.0010658770051,
+              "no_of_layers": 3,
+              "no_of_units": 32,
+              "num_epochs": 300,
+              "weight_decay": 0.0029382093285
+            },
+            {
+              "model": "ffn",
+              "batch_norm": false,
+              "batch_size": 32,
+              "learning_rate_ffn": 0.0267175590973,
+              "no_of_layers": 3,
+              "no_of_units": 512,
+              "num_epochs": 300,
+              "weight_decay": 0.000913941972
+            },
+            {
+              "model": "hgb",
+              "l2_reg_hgb": 0.1812701312756,
+              "learning_rate_hgb": 0.0196700501546,
+              "max_bins_hgb": 255,
+              "max_features_hgb": 0.5,
+              "max_iter_hgb": 800,
+              "max_leaf_nodes_hgb": 41,
+              "min_samples_leaf_hgb": 68
+            },
+            {
+              "model": "hgb",
+              "l2_reg_hgb": 0.0662419264896,
+              "learning_rate_hgb": 0.1394320861791,
+              "max_bins_hgb": 64,
+              "max_features_hgb": 0.7,
+              "max_iter_hgb": 800,
+              "max_leaf_nodes_hgb": 93,
+              "min_samples_leaf_hgb": 22
+            },
+            {
+              "model": "hgb",
+              "l2_reg_hgb": 0.0190299737207,
+              "learning_rate_hgb": 0.0488690888645,
+              "max_bins_hgb": 64,
+              "max_features_hgb": 1.0,
+              "max_iter_hgb": 500,
+              "max_leaf_nodes_hgb": 99,
+              "min_samples_leaf_hgb": 11
+            },
+            {
+              "model": "ffn",
+              "batch_norm": true,
+              "batch_size": 128,
+              "learning_rate_ffn": 0.004104715277,
+              "no_of_layers": 2,
+              "no_of_units": 512,
+              "num_epochs": 100,
+              "weight_decay": 0.0096795040222
+            }
+          ]
+        ]
+      ]
+    },
+    "next_bracket": 1
+  }
+}

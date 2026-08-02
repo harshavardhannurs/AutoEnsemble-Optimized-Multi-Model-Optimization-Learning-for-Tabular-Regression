@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 
 import torch
@@ -5,8 +7,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from copy import deepcopy
-
-from sklearn.model_selection import KFold
 
 import utils.data_utils as du
 import utils.model_utils as mu
@@ -17,8 +17,18 @@ def setup_model(
         no_of_units,
         learning_rate,
         weight_decay,
-        batch_norm=False
+        batch_norm=False,
+        seed=42
 ):
+
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+
+    if torch.backends.mps.is_available():
+        torch.mps.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
 
     class FFN(nn.Module):
         def __init__(self, n_feats, n_layers, n_units):
@@ -65,26 +75,19 @@ def setup_model(
 
     return model, optimizer, loss_function
 
-def prepare_data(dataset_name):
-
-    data = du.get_combined_dataset(dataset_name)
-    X, y = du.split_features_and_target(data)
-    X_train, X_test, y_train, y_test = du.split_train_test(X, y, test_size=0.2)
-
-    return X_train, X_test, y_train, y_test
-
 def run_cv(
-        X_train,
-        y_train,
+        dataset_name,
         model_hps,
         batch_size=64,
         num_epochs=500,
-        n_splits=10
+        n_splits=None,
+        seed=42
 ):
 
     device = mu.set_device()
 
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+    if n_splits is None:
+        n_splits = du.get_num_folds(dataset_name)
 
     train_loss_across_folds = np.zeros((n_splits, num_epochs))
     val_loss_across_folds = np.zeros((n_splits, num_epochs))
@@ -92,12 +95,16 @@ def run_cv(
 
     no_of_layers, no_of_units, learning_rate, weight_decay, batch_norm = model_hps
 
-    for i, (train_indices, val_indices) in enumerate(kf.split(X_train)):
+    for i in range(n_splits):
+        fold_number = i + 1
+        X_train_fold, y_train_fold, X_val_fold, y_val_fold = du.get_fold_data(dataset_name, fold_number, seed)
 
-        X_train_fold = X_train.iloc[train_indices]
-        X_val_fold = X_train.iloc[val_indices]
-        y_train_fold = y_train.iloc[train_indices]
-        y_val_fold = y_train.iloc[val_indices]
+        # Handle cases where y_val_fold might be None (e.g., exam_dataset)
+        if y_val_fold is None:
+            # If no validation target, we can't compute R2 for this fold. 
+            # This happens for exam_dataset where only X_test is provided in the fold.
+            print(f"[CV][Split {i + 1}] No validation target found. Skipping R2 calculation for this fold.")
+            continue
 
         # Now apply the transformation
         transformer_X, transformer_y = du.data_transformer(X_train_fold, y_train_fold)
@@ -108,6 +115,11 @@ def run_cv(
         y_train_fold = transformer_y.fit_transform(y_train_fold)
         y_val_fold = transformer_y.transform(y_val_fold)
 
+        X_train_fold = du.to_dense(X_train_fold)
+        X_val_fold = du.to_dense(X_val_fold)
+        y_train_fold = du.to_dense(y_train_fold).ravel()
+        y_val_fold = du.to_dense(y_val_fold).ravel()
+
         no_of_feats = X_train_fold.shape[1]
 
         model, optimizer, loss_function = setup_model(
@@ -116,7 +128,8 @@ def run_cv(
             no_of_units=no_of_units,
             learning_rate=learning_rate,
             weight_decay=weight_decay,
-            batch_norm=batch_norm
+            batch_norm=batch_norm,
+            seed=seed
         )
 
         best_loss = np.inf
@@ -129,8 +142,6 @@ def run_cv(
 
         train_loss_across_epochs = np.zeros((num_epochs,))
         val_loss_across_epochs = np.zeros((num_epochs,))
-
-        print(f'CV Fold: {i + 1}/{n_splits}')
 
         for epochi in range(num_epochs):
 
@@ -170,9 +181,6 @@ def run_cv(
                 best_loss = val_loss_across_epochs[epochi]
                 best_weights = deepcopy(model.state_dict())
 
-
-            print(f'Epoch {epochi + 1}/{num_epochs} -> Train Loss: {train_loss_across_epochs[epochi]:.4f} || Validation Loss: {val_loss_across_epochs[epochi]:.4f}')
-
         model.load_state_dict(best_weights)
 
         model.eval()
@@ -186,14 +194,21 @@ def run_cv(
 
             y_val_hat = model(X_val)
 
-        y, y_hat = mu.get_predictions(y_val.cpu().numpy(), y_val_hat.cpu().numpy(), transformer_y)
+        y = mu.inverse_transform_target(y_val.cpu().numpy(), transformer_y)
+        y_hat = mu.inverse_transform_target(y_val_hat.cpu().numpy(), transformer_y)
 
         r2_score_across_folds[i] = mu.get_r2_score(y, y_hat)
 
         train_loss_across_folds[i, :] = train_loss_across_epochs
         val_loss_across_folds[i, :] = val_loss_across_epochs
 
-    return train_loss_across_folds, val_loss_across_folds, r2_score_across_folds
+        print(
+            f"[CV][Split {i + 1}] "
+            f"Model=Feed Forward Neural Network, "
+            f"R2={r2_score_across_folds[i]:.4f}"
+        )
+
+    return r2_score_across_folds
 
 def pipelined_model(
         dataset_name,
@@ -204,35 +219,97 @@ def pipelined_model(
         weight_decay,
         batch_norm,
         num_epochs,
-        n_splits=10
+        n_splits=None,
+        seed=42
 ):
 
-    X_train, X_test, y_train, y_test  = prepare_data(dataset_name)
-
-    train_loss_across_folds, val_loss_across_folds, r2_score_across_folds = run_cv(
-        X_train=X_train,
-        y_train=y_train,
+    r2_score_across_folds = run_cv(
+        dataset_name=dataset_name,
         model_hps=(no_of_layers, no_of_units, learning_rate, weight_decay, batch_norm),
         batch_size=batch_size,
         num_epochs=num_epochs,
-        n_splits=n_splits
+        n_splits=n_splits,
+        seed=seed
     )
 
-    return train_loss_across_folds, val_loss_across_folds, r2_score_across_folds
+    return r2_score_across_folds
+
+def train(
+    dataset_name,
+    model_hps,
+    seed=42
+):
+
+    batch_size, learning_rate, no_of_layers, no_of_units, weight_decay, batch_norm, num_epochs = model_hps
+
+    if dataset_name != du.DATASET_DICT[6]:
+        X_train, X_test, y_train, y_test = du.split_train_test(
+            *du.split_features_and_target(du.get_combined_dataset(dataset_name)), seed=seed
+        )
+    else:
+        X_train, y_train, X_test, y_test = du.get_all_folds_data(dataset_name)
+
+    transformer_X, transformer_y = du.data_transformer(X_train, y_train)
+    X_train = du.to_dense(transformer_X.fit_transform(X_train))
+    X_test = du.to_dense(transformer_X.transform(X_test))
+    y_train = transformer_y.fit_transform(y_train)
+
+    if y_test.shape[0] != 0:
+        y_test = transformer_y.transform(y_test)
+        y_test = mu.inverse_transform_target(y_test, transformer_y)
+    else:
+        y_test = np.array([])
+
+    no_of_feats = X_train.shape[1]
+
+    train_ldr = du.get_dataloader(X_train, y_train, batch_size=batch_size)
+    X_test = du.to_tensor(X_test)
+
+    model, optimizer, loss_function = setup_model(
+        no_of_feats=no_of_feats,
+        no_of_layers=no_of_layers,
+        no_of_units=no_of_units,
+        learning_rate=learning_rate,
+        weight_decay=weight_decay,
+        batch_norm=batch_norm,
+        seed=seed
+    )
+
+    device = mu.set_device()
+
+    model.to(device)
+    model.train()
+    print('Training FFN...')
+    for epochi in range(num_epochs):
+
+        for X, y in train_ldr:
+            X = X.to(device)
+            y = y.to(device)
+
+            y_hat = model(X)
+
+            loss = loss_function(y_hat, y)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        if (epochi + 1) % 10 == 0:
+            print(f'Epoch {epochi + 1}/{num_epochs} completed')
+
+    # Now use the trained model to make predictions on the test set
+
+    print('Evaluating FFN on test set...')
+    model.eval()
+
+    with torch.no_grad():
+        X_test = X_test.to(device)
+
+        y_hat = model(X_test)
+
+    y_hat = mu.inverse_transform_target(y_hat.cpu().numpy(), transformer_y)
+
+    return model, y_test, y_hat
 
 if __name__ == '__main__':
-    train_loss_across_folds, val_loss_across_folds, r2_score_across_folds = pipelined_model(
-        dataset_name='bike_sharing_demand',
-        batch_size=64,
-        no_of_layers=2,
-        no_of_units=128,
-        learning_rate=0.001,
-        weight_decay=0.001,
-        batch_norm=False,
-        num_epochs=50,
-        n_splits=5
-    )
-
-    mu.plot_losses(train_loss_across_folds, val_loss_across_folds)
-
-    print("The current hyperparameter configuration for FFN yields an average R2 Score of", mu.average(r2_score_across_folds))
+    pass

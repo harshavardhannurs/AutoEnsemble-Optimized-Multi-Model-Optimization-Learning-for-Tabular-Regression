@@ -1,0 +1,11 @@
+numpy==2.5.1
+pandas==2.3.3
+fastparquet
+scikit-learn==1.8.0
+matplotlib==3.11.1
+torch==2.13.0
+xgboost==3.3.0
+tabpfn==8.0.3
+ConfigSpace==1.2.2
+smac==2.4.0
+requests==2.32.5

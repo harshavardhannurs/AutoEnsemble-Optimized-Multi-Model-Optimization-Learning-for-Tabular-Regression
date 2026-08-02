@@ -3,6 +3,8 @@ import torch
 from sklearn.metrics import r2_score
 import matplotlib.pyplot as plt
 
+MODELS = {'ffn': 'Feed Forward Neural Network', 'xgb': 'XGBoost', 'randomforest': 'Random Forest', 'pfn': 'TabPFN', 'extratrees': 'Extra Trees', 'hgb': 'Histogram Gradient Boosting'}
+
 def set_device():
 
     device = torch.device('cpu')
@@ -34,19 +36,19 @@ def plot_losses(train_loss_across_folds, val_loss_across_folds):
 
     plt.show()
 
-def get_predictions(y, y_hat, transformer_y):
+def inverse_transform_target(y, transformer):
 
-    if y_hat.ndim == 1:
-        y_hat = y_hat.reshape(-1, 1)
+    """
+    Inverse transformers the target from standard scaler to the original scale. (Mostly used for FFN )
+    """
+
+    if y is None:
+        return None
+
     if y.ndim == 1:
         y = y.reshape(-1, 1)
 
-    # inverse_transformers_ expects the arrays to be 2D
-
-    y = transformer_y.named_transformers_['scaler'].inverse_transform(y)
-    y_hat = transformer_y.named_transformers_['scaler'].inverse_transform(y_hat)
-
-    return y.flatten(), y_hat.flatten()
+    return transformer.named_transformers_['scaler'].inverse_transform(y).flatten()
 
 def average(X):
 
@@ -54,5 +56,7 @@ def average(X):
 
 def get_r2_score(y, y_hat):
 
-    r2 = r2_score(y, y_hat)
-    return r2
+    if len(y) == 0:
+        return None
+
+    return r2_score(y, y_hat)
