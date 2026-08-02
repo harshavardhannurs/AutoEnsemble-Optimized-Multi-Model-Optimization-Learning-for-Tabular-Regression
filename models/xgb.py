@@ -116,7 +116,7 @@ def train(
 
     if dataset_name != du.DATASET_DICT[6]:
         X_train, X_test, y_train, y_test = du.split_train_test(
-            *du.split_features_and_target(du.get_combined_dataset(dataset_name)), seed)
+            *du.split_features_and_target(du.get_combined_dataset(dataset_name)), seed=seed)
     else:
         X_train, y_train, X_test, y_test = du.get_all_folds_data(dataset_name)
 
@@ -149,5 +149,4 @@ def train(
 
 if __name__ == '__main__':
     pass
-
 
