@@ -15,7 +15,7 @@ def train(dataset_name, save_path, seed):
         # Get OOF predictions to calculate weights
         print('Calculating optimal weights using NNLS and OOF predictions...')
         oof_preds_dict = {}
-        _, y_train_all, _, _ = du.get_all_folds_data(dataset_name)
+        _, y_train_all, _, _ = du.get_all_folds_data(dataset_name, seed=seed)
 
         if dataset_name == du.DATASET_DICT[6]: # Preserving the order of y_train for exam_dataset for R2 score to get calculated properly
             y_train_all  = []
@@ -36,8 +36,40 @@ def train(dataset_name, save_path, seed):
                 score = r2_score(y_train_all, oof_preds)
                 print(f'OOF R2 score for {model_name}: {score:.4f}')
         
-        weights_dict = tu.find_weights(oof_preds_dict, y_train_all)
-        print(f'Optimal weights found: {weights_dict}')
+        nnls_weights = tu.find_weights(oof_preds_dict, y_train_all)
+        print(f'Optimal NNLS weights found: {nnls_weights}')
+
+        (
+            weights_dict,
+            individual_oof_scores,
+            ensemble_oof_score,
+            best_individual_model,
+            use_ensemble,
+        ) = tu.select_output_weights(
+            oof_predictions=oof_preds_dict,
+            y_train=y_train_all,
+            ensemble_weights=nnls_weights,
+        )
+
+        best_individual_score = individual_oof_scores[best_individual_model]
+        print(f'NNLS ensemble OOF R2 score: {ensemble_oof_score:.4f}')
+
+        if use_ensemble:
+            output_strategy = 'NNLS ensemble'
+            print(
+                'NNLS ensemble beats the best individual model '
+                f'({best_individual_model}: {best_individual_score:.4f}). '
+                'Using the ensemble for the final output.'
+            )
+        else:
+            output_strategy = f'best individual model ({best_individual_model})'
+            print(
+                'NNLS ensemble does not beat the best individual model '
+                f'({best_individual_model}: {best_individual_score:.4f}). '
+                f'Using only {best_individual_model} for the final output.'
+            )
+
+        print(f'Final output weights: {weights_dict}')
 
         # Step 3: Train models with non-zero weights and get test predictions
         final_predictions = []
@@ -67,7 +99,7 @@ def train(dataset_name, save_path, seed):
         # Print final R2 score if y_test is available
         if y_test_all is not None:
             final_score = r2_score(y_test_all, y_hat_weighted_average)
-            print(f'Final Ensemble R2 score: {final_score:.4f}')
+            print(f'Final {output_strategy} R2 score: {final_score:.4f}')
 
         # Save the predictions
         np.save(save_path, y_hat_weighted_average)

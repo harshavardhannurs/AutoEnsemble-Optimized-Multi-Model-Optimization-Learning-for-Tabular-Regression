@@ -347,3 +347,73 @@ def find_weights(oof_predictions, y_train):
         weights = np.ones(len(weights)) / len(weights)
         
     return dict(zip(model_names, weights))
+
+
+def select_output_weights(oof_predictions, y_train, ensemble_weights):
+    """Choose between the NNLS ensemble and the best individual OOF model.
+
+    The comparison is performed entirely on out-of-fold predictions. The
+    ensemble is retained only when its R2 score strictly exceeds the score of
+    every individual model. Otherwise, a one-hot weight dictionary selects the
+    best individual model for final training and prediction.
+    """
+
+    model_names = list(oof_predictions)
+    if not model_names:
+        raise ValueError("No OOF predictions were provided.")
+
+    if isinstance(y_train, np.ndarray):
+        targets = y_train.ravel()
+    else:
+        targets = y_train.values.ravel()
+
+    prediction_matrix = np.column_stack([
+        np.asarray(oof_predictions[name]).ravel()
+        for name in model_names
+    ])
+
+    if prediction_matrix.shape[0] != targets.shape[0]:
+        raise ValueError(
+            "OOF prediction and target lengths do not match: "
+            f"{prediction_matrix.shape[0]} != {targets.shape[0]}."
+        )
+
+    individual_scores = {
+        name: mu.get_r2_score(targets, prediction_matrix[:, index])
+        for index, name in enumerate(model_names)
+    }
+
+    weight_array = np.asarray([
+        ensemble_weights.get(name, 0.0)
+        for name in model_names
+    ], dtype=float)
+
+    if not np.isfinite(weight_array).all() or weight_array.sum() <= 0:
+        raise ValueError("Ensemble weights must be finite and have a positive sum.")
+
+    ensemble_predictions = np.average(
+        prediction_matrix,
+        axis=1,
+        weights=weight_array,
+    )
+    ensemble_score = mu.get_r2_score(targets, ensemble_predictions)
+
+    best_model = max(individual_scores, key=individual_scores.get)
+    best_individual_score = individual_scores[best_model]
+    use_ensemble = ensemble_score > best_individual_score
+
+    if use_ensemble:
+        selected_weights = dict(ensemble_weights)
+    else:
+        selected_weights = {
+            name: 1.0 if name == best_model else 0.0
+            for name in model_names
+        }
+
+    return (
+        selected_weights,
+        individual_scores,
+        ensemble_score,
+        best_model,
+        use_ensemble,
+    )
