@@ -99,7 +99,7 @@ def train(dataset_name, save_path, seed):
         # Print final R2 score if y_test is available
         if y_test_all is not None:
             final_score = r2_score(y_test_all, y_hat_weighted_average)
-            print(f'Final {output_strategy} R2 score: {final_score:.4f}')
+            print(f'Final R2 score on test set: {final_score:.4f}')
 
         # Save the predictions
         np.save(save_path, y_hat_weighted_average)

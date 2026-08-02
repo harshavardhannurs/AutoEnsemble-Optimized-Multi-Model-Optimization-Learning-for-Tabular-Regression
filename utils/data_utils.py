@@ -1,4 +1,5 @@
 from pathlib import Path
+from functools import lru_cache
 
 import numpy as np
 import pandas as pd
@@ -10,12 +11,12 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.model_selection import KFold
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GroupKFold, GroupShuffleSplit, KFold
 
 DATASET_DICT = {1: 'bike_sharing_demand', 2: 'brazilian_houses', 3: 'superconductivity', 4: 'wine_quality', 5: 'yprop_4_1', 6: 'exam_dataset'}
 
-def get_combined_dataset(dataset_name):
+@lru_cache(maxsize=None)
+def _get_combined_dataset_cached(dataset_name):
 
     """
     Combines all folds of a dataset into a single DataFrame.
@@ -32,7 +33,7 @@ def get_combined_dataset(dataset_name):
 
     folds = []
 
-    for fold_dir in data_dir.iterdir():
+    for fold_dir in sorted(data_dir.iterdir(), key=lambda path: path.name):
 
         # Skip hidden/system entries like macOS .DS_Store and any non-fold files
         if fold_dir.name.startswith('.'):
@@ -70,6 +71,12 @@ def get_combined_dataset(dataset_name):
 
     return eng_features(dataset_name, dataset)
 
+
+def get_combined_dataset(dataset_name):
+    """Return an isolated copy of the cached, deduplicated dataset."""
+
+    return _get_combined_dataset_cached(dataset_name).copy()
+
 def split_features_and_target(df, target_column='target'):
 
     """
@@ -84,12 +91,36 @@ def split_features_and_target(df, target_column='target'):
 def split_train_test(X, y, test_size=0.2, seed=42):
 
     """
-    Split the data into train and test sets.
+    Split data into train and test sets without separating identical features.
+
+    Grouping identical feature rows prevents duplicate observations from
+    appearing in both the training and held-out test sets. The returned indices
+    are reset so all model families receive the same deterministic row order.
     """
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=True, random_state=seed)
+    groups = get_feature_groups(X)
+    splitter = GroupShuffleSplit(
+        n_splits=1,
+        test_size=test_size,
+        random_state=seed,
+    )
+    train_indices, test_indices = next(splitter.split(X, y, groups=groups))
+
+    X_train = X.iloc[train_indices].reset_index(drop=True)
+    X_test = X.iloc[test_indices].reset_index(drop=True)
+    y_train = y.iloc[train_indices].reset_index(drop=True)
+    y_test = y.iloc[test_indices].reset_index(drop=True)
 
     return X_train, X_test, y_train, y_test
+
+
+def get_feature_groups(X):
+    """Return a stable group identifier for every complete feature row."""
+
+    if not isinstance(X, pd.DataFrame):
+        X = pd.DataFrame(X)
+
+    return pd.util.hash_pandas_object(X, index=False).to_numpy()
 
 def get_num_folds(dataset_name):
 
@@ -112,6 +143,34 @@ def get_num_folds(dataset_name):
         if fold_dir.is_dir() and fold_dir.name.isdigit():
             num_folds += 1
     return num_folds
+
+
+@lru_cache(maxsize=None)
+def _get_optimization_fold_state(dataset_name, seed):
+    """Build and cache the leakage-safe outer training set and inner folds."""
+
+    dataset = get_combined_dataset(dataset_name)
+    X, y = split_features_and_target(dataset)
+    X_outer_train, _, y_outer_train, _ = split_train_test(X, y, seed=seed)
+
+    num_folds = get_num_folds(dataset_name)
+    groups = get_feature_groups(X_outer_train)
+    if len(np.unique(groups)) < num_folds:
+        raise ValueError(
+            f"Dataset '{dataset_name}' has fewer unique feature groups than "
+            f"the requested {num_folds} folds."
+        )
+
+    splitter = GroupKFold(
+        n_splits=num_folds,
+        shuffle=True,
+        random_state=seed,
+    )
+    folds = tuple(
+        splitter.split(X_outer_train, y_outer_train, groups=groups)
+    )
+
+    return X_outer_train, y_outer_train, folds
 
 def get_fold_data(dataset_name, fold_number, seed=42):
     
@@ -160,40 +219,23 @@ def get_fold_data(dataset_name, fold_number, seed=42):
         
         return X_train, y_train, X_val, y_val
 
-    utils_dir = Path(__file__).resolve().parent
-    project_root = utils_dir.parent
-    fold_dir = project_root / 'data' / dataset_name / str(fold_number)
+    # Build all optimization folds inside one deduplicated outer training set.
+    # The outer test set is never exposed to HPO, OOF prediction generation, or
+    # ensemble weight fitting.
+    X_outer_train, y_outer_train, folds = _get_optimization_fold_state(
+        dataset_name,
+        seed,
+    )
+    train_indices, val_indices = folds[fold_number - 1]
 
-    if not fold_dir.exists():
-        raise FileNotFoundError(f"Fold directory does not exist: {fold_dir}")
-
-    X_train = pd.read_parquet(fold_dir/'X_train.parquet').reset_index(drop=True)
-    y_train = pd.read_parquet(fold_dir/'y_train.parquet').reset_index(drop=True)
-    X_val = pd.read_parquet(fold_dir/'X_test.parquet').reset_index(drop=True)
-
-    y_val_path = fold_dir/'y_test.parquet'
-    if y_val_path.exists():
-        y_val = pd.read_parquet(y_val_path).reset_index(drop=True)
-    else:
-        y_val = None
-
-    if isinstance(y_train, pd.Series):
-        y_train = y_train.to_frame()
-    if y_val is not None and isinstance(y_val, pd.Series):
-        y_val = y_val.to_frame()
-
-    if y_train.shape[1] == 1:
-        y_train.columns = ['target']
-    if y_val is not None and y_val.shape[1] == 1:
-        y_val.columns = ['target']
-
-    # Apply feature engineering
-    X_train = eng_features(dataset_name, X_train)
-    X_val = eng_features(dataset_name, X_val)
+    X_train = X_outer_train.iloc[train_indices].reset_index(drop=True)
+    y_train = y_outer_train.iloc[train_indices].reset_index(drop=True)
+    X_val = X_outer_train.iloc[val_indices].reset_index(drop=True)
+    y_val = y_outer_train.iloc[val_indices].reset_index(drop=True)
 
     return X_train, y_train, X_val, y_val
 
-def get_all_folds_data(dataset_name):
+def get_all_folds_data(dataset_name, seed=42):
 
     """
     Returns X_train, y_train, X_test, y_test combined from all folds.
@@ -219,17 +261,17 @@ def get_all_folds_data(dataset_name):
         
         return X_train, y_train, X_test, pd.DataFrame(columns=y_train.columns)
 
-    # For bike_sharing_demand and others, since the dataset is readily split into training and validation sets
-    # for each fold, we use the union of all X_test as the 'full' dataset
-    # to avoid redundant training and leakage during OOF evaluation.
+    # Concatenating the inner validation partitions recreates the complete
+    # outer training set in the exact order used by OOF predictions. The outer
+    # test partition remains untouched.
 
     num_folds = get_num_folds(dataset_name)
     X_test_list, y_test_list = [], []
     
     for fold in range(1, num_folds + 1):
-        X_tr, y_tr, X_te, y_te = get_fold_data(dataset_name, fold)
-        # In these datasets, the union of X_test across all folds 
-        # constitutes the complete training dataset.
+        X_tr, y_tr, X_te, y_te = get_fold_data(dataset_name, fold, seed=seed)
+        # The union of the inner validation partitions constitutes the complete
+        # outer training dataset in OOF prediction order.
         X_test_list.append(X_te)
         if y_te is not None:
             y_test_list.append(y_te)
