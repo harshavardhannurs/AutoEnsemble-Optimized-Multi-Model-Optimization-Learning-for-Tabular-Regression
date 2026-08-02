@@ -1,0 +1,297 @@
+{
+    "name": "smac_mf_optim_bike_sharing_demand",
+    "deterministic": true,
+    "objectives": "cost",
+    "crash_cost": Infinity,
+    "termination_cost_threshold": Infinity,
+    "walltime_limit": 86400,
+    "cputime_limit": Infinity,
+    "trial_walltime_limit": null,
+    "trial_memory_limit": null,
+    "n_trials": 200,
+    "use_default_config": false,
+    "instances": null,
+    "instance_features": null,
+    "adaptive_capping": false,
+    "adaptive_capping_slackfactor": null,
+    "runtime_cutoff": null,
+    "min_budget": 50,
+    "max_budget": 1000,
+    "seed": 0,
+    "n_workers": 1,
+    "_meta": {
+        "facade": {
+            "name": "MultiFidelityFacade"
+        },
+        "runner": {
+            "name": "TargetFunctionRunner",
+            "code": "b'\\x97\\x00|\\x00d\\x01\\x19\\x00\\x00\\x00}\\x04t\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00d\\x02t\\x03\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x04\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xab\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x9b\\x00d\\x03t\\x06\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x08\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x04\\x19\\x00\\x00\\x00\\x9b\\x00\\x9d\\x04d\\x04\\xac\\x05\\xab\\x02\\x00\\x00\\x00\\x00\\x00\\x00\\x01\\x00d\\x06}\\x05|\\x04d\\x07k(\\x00\\x00rbt\\x0b\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x0c\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x03t\\x0f\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x00d\\x08\\x19\\x00\\x00\\x00\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00|\\x00d\\t\\x19\\x00\\x00\\x00t\\x0f\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x00d\\n\\x19\\x00\\x00\\x00\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00|\\x00d\\x0b\\x19\\x00\\x00\\x00|\\x00d\\x0c\\x19\\x00\\x00\\x00|\\x00d\\r\\x19\\x00\\x00\\x00t\\x0f\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x02\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00|\\x01\\xac\\x0e\\xab\\t\\x00\\x00\\x00\\x00\\x00\\x00}\\x06t\\x07\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x10\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x06\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00}\\x05\\x90\\x01n\\x99|\\x04d\\x0fk(\\x00\\x00rLt\\x13\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x0c\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x03t\\x0f\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x02\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00|\\x00d\\x10\\x19\\x00\\x00\\x00|\\x00d\\x11\\x19\\x00\\x00\\x00|\\x00d\\x12\\x19\\x00\\x00\\x00|\\x00d\\x13\\x19\\x00\\x00\\x00|\\x00d\\x14\\x19\\x00\\x00\\x00|\\x01\\xac\\x15\\xab\\x08\\x00\\x00\\x00\\x00\\x00\\x00}\\x06t\\x07\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x10\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x06\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00}\\x05\\x90\\x01nH|\\x04d\\x16k(\\x00\\x00rVt\\x15\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x0c\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x03t\\x0f\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x02\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00|\\x00d\\x17\\x19\\x00\\x00\\x00d\\x18k(\\x00\\x00r\\x02d\\x00n\\x04|\\x00d\\x17\\x19\\x00\\x00\\x00|\\x00d\\x19\\x19\\x00\\x00\\x00t\\x17\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x00d\\x1a\\x19\\x00\\x00\\x00\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00|\\x01\\xac\\x1b\\xab\\x06\\x00\\x00\\x00\\x00\\x00\\x00}\\x06t\\x07\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x10\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x06\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00}\\x05n\\xed|\\x04d\\x1ck(\\x00\\x00rVt\\x19\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x0c\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x03t\\x0f\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x02\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00|\\x00d\\x1d\\x19\\x00\\x00\\x00d\\x18k(\\x00\\x00r\\x02d\\x00n\\x04|\\x00d\\x1d\\x19\\x00\\x00\\x00|\\x00d\\x1e\\x19\\x00\\x00\\x00t\\x17\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x00d\\x1f\\x19\\x00\\x00\\x00\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00|\\x01\\xac\\x1b\\xab\\x06\\x00\\x00\\x00\\x00\\x00\\x00}\\x06t\\x07\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x10\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x06\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00}\\x05n\\x92|\\x04d k(\\x00\\x00rXt\\x1b\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x0c\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x03t\\x0f\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x02\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00|\\x00d!\\x19\\x00\\x00\\x00|\\x00d\"\\x19\\x00\\x00\\x00|\\x00d#\\x19\\x00\\x00\\x00|\\x00d$\\x19\\x00\\x00\\x00t\\x17\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x00d%\\x19\\x00\\x00\\x00\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00|\\x00d&\\x19\\x00\\x00\\x00|\\x01\\xac\\'\\xab\\t\\x00\\x00\\x00\\x00\\x00\\x00}\\x06t\\x07\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x10\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x06\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00}\\x05n5|\\x04d(k(\\x00\\x00r0t\\x1d\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x0c\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x03|\\x00d)\\x19\\x00\\x00\\x00|\\x01\\xac*\\xab\\x03\\x00\\x00\\x00\\x00\\x00\\x00}\\x06t\\x07\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x10\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x06\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00}\\x05t\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00d+t\\x03\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x04\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xab\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x9b\\x00d,t\\x06\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00j\\x08\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00|\\x04\\x19\\x00\\x00\\x00\\x9b\\x00d-|\\x05d.\\x9b\\x04d/|\\x00\\x9b\\x00\\x9d\\x08d\\x04\\xac\\x05\\xab\\x02\\x00\\x00\\x00\\x00\\x00\\x00\\x01\\x00d0|\\x05z\\n\\x00\\x00S\\x00'",
+            "code-partial-args": "<function mfo_train at 0x000002B45E7B44A0>"
+        },
+        "model": {
+            "name": "RandomForest",
+            "types": [
+                6,
+                3,
+                5,
+                0,
+                0,
+                0,
+                0,
+                0,
+                4,
+                7,
+                7,
+                0,
+                5,
+                5,
+                5,
+                7,
+                0,
+                0,
+                0,
+                0,
+                5,
+                4,
+                5,
+                8,
+                0,
+                6,
+                6,
+                0,
+                0,
+                0
+            ],
+            "bounds": [
+                [
+                    6,
+                    NaN
+                ],
+                [
+                    3,
+                    NaN
+                ],
+                [
+                    5,
+                    NaN
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    4,
+                    NaN
+                ],
+                [
+                    7,
+                    NaN
+                ],
+                [
+                    7,
+                    NaN
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    5,
+                    NaN
+                ],
+                [
+                    5,
+                    NaN
+                ],
+                [
+                    5,
+                    NaN
+                ],
+                [
+                    7,
+                    NaN
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    5,
+                    NaN
+                ],
+                [
+                    4,
+                    NaN
+                ],
+                [
+                    5,
+                    NaN
+                ],
+                [
+                    8,
+                    NaN
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    6,
+                    NaN
+                ],
+                [
+                    6,
+                    NaN
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    -1.0,
+                    1.0
+                ],
+                [
+                    -1.0,
+                    1.0
+                ]
+            ],
+            "pca_components": 7,
+            "n_estimators": 10,
+            "cross_trees_variance": false,
+            "criterion": "squared_error",
+            "splitter": "random",
+            "max_depth": 1048576,
+            "min_samples_split": 2,
+            "min_samples_leaf": 1,
+            "min_weight_fraction_leaf": 0.0,
+            "max_leaf_nodes": 1048576,
+            "min_impurity_decrease": 1e-08,
+            "bootstrap": true,
+            "oob_score": false,
+            "n_jobs": -1,
+            "verbose": 0,
+            "warm_start": false,
+            "ccp_alpha": 0.0,
+            "max_samples": null,
+            "monotonic_cst": null,
+            "random_state": 0,
+            "max_features": 30,
+            "log_y": true
+        },
+        "acquisition_maximizer": {
+            "name": "LocalAndSortedRandomSearch",
+            "acquisition_function": {
+                "name": "EI",
+                "xi": 0.0,
+                "log": true
+            },
+            "challengers": 10000,
+            "seed": 0,
+            "random_search": {
+                "name": "RandomSearch",
+                "acquisition_function": {
+                    "name": "EI",
+                    "xi": 0.0,
+                    "log": true
+                },
+                "challengers": 5000,
+                "seed": 0
+            },
+            "local_search": {
+                "name": "LocalSearch",
+                "acquisition_function": {
+                    "name": "EI",
+                    "xi": 0.0,
+                    "log": true
+                },
+                "challengers": 5000,
+                "seed": 0,
+                "max_steps": null,
+                "n_steps_plateau_walk": 10,
+                "vectorization_min_obtain": 2,
+                "vectorization_max_obtain": 64,
+                "n_jobs": 1,
+                "stdev_init": 0.05,
+                "stdev_min": 0.005,
+                "stdev_max": null,
+                "upscale_thresh": 3,
+                "downscale_interval": 3
+            }
+        },
+        "acquisition_function": {
+            "name": "EI",
+            "xi": 0.0,
+            "log": true
+        },
+        "intensifier": {
+            "name": "Hyperband",
+            "max_incumbents": 10,
+            "max_config_calls": null,
+            "seed": 0,
+            "eta": 3,
+            "instance_seed_order": "shuffle_once",
+            "incumbent_selection": "highest_observed_budget"
+        },
+        "initial_design": {
+            "name": "RandomInitialDesign",
+            "n_configs": 50,
+            "n_configs_per_hyperparameter": 10,
+            "additional_configs": [],
+            "seed": 0
+        },
+        "random_design": {
+            "name": "ProbabilityRandomDesign",
+            "seed": 0,
+            "probability": 0.2
+        },
+        "runhistory_encoder": {
+            "name": "RunHistoryLogScaledEncoder",
+            "considered_states": [
+                1,
+                2,
+                4
+            ],
+            "lower_budget_states": [],
+            "scale_percentage": 5,
+            "seed": 0
+        },
+        "multi_objective_algorithm": null,
+        "config_selector": {
+            "name": "ConfigSelector",
+            "retrain_after": 8,
+            "max_new_config_tries": 16,
+            "min_trials": 1
+        },
+        "version": "2.4.0"
+    },
+    "output_directory": "C:\\Users\\arpit\\Downloads\\harsha\\outputs\\multi-fidelity\\smac_mf_optim_bike_sharing_demand\\0"
+}
