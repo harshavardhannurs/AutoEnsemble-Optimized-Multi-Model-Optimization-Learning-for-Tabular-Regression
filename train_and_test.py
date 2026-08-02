@@ -13,7 +13,6 @@ def train(dataset_name, save_path, seed):
         top_configs_per_model = tu.get_top_configs_per_model(dataset_name=dataset_name)
         
         # Get OOF predictions to calculate weights
-        print('Calculating optimal weights using NNLS and OOF predictions...')
         oof_preds_dict = {}
         _, y_train_all, _, _ = du.get_all_folds_data(dataset_name, seed=seed)
 
@@ -35,7 +34,8 @@ def train(dataset_name, save_path, seed):
             if y_train_all is not None:
                 score = r2_score(y_train_all, oof_preds)
                 print(f'OOF R2 score for {model_name}: {score:.4f}')
-        
+
+        print('Calculating optimal weights using NNLS and OOF predictions...')
         nnls_weights = tu.find_weights(oof_preds_dict, y_train_all)
         print(f'Optimal NNLS weights found: {nnls_weights}')
 
