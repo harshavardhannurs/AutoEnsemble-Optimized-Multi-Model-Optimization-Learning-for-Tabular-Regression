@@ -175,15 +175,20 @@ def get_oof_predictions(dataset_name, config, seed):
     path = Path(__file__).resolve().parent.parent / 'outputs' / 'oof_predictions' / f'{dataset_name}_oof_predictions.pkl'
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    obj = dict({})
+    data = {}
 
     if path.exists():
         with open(path, 'rb') as f:
-            obj = pickle.load(f)
-        oof_predictions = obj.get(model_name, None)
-        if oof_predictions is not None and obj.get('seed', None) == seed:
-            print(f"OOF predictions for {dataset_name} already exist. Returning cached predictions.")
-            return oof_predictions
+            data = pickle.load(f)
+        obj = data.get(seed, None)
+
+        if obj is not None:
+            oof_predictions = obj.get(model_name, None)
+            if oof_predictions is not None:
+                print(f"OOF predictions for {dataset_name} already exist. Returning cached predictions.")
+                return oof_predictions
+
+    print("No cached OOF predictions found. Generating new predictions...")
 
     oof_predictions_list = []
     num_folds = du.get_num_folds(dataset_name)
@@ -297,9 +302,15 @@ def get_oof_predictions(dataset_name, config, seed):
         oof_predictions_list.append(y_hat.flatten())
 
     with open(path, 'wb') as f: # writes a new entry to the old dictionary
-        obj[model_name] =  np.concatenate(oof_predictions_list)
-        obj['seed'] = seed
-        pickle.dump(obj, f)
+
+        if data.get(seed, None) is None:
+            data[seed] = {
+                model_name: oof_predictions_list
+            }
+        else:
+            data[seed].update({model_name: np.concatenate(oof_predictions_list)})
+
+        pickle.dump(data, f)
 
     return np.concatenate(oof_predictions_list)
 
