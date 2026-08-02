@@ -1,0 +1,317 @@
+{
+  "incumbent_ids": [
+    69
+  ],
+  "rejected_config_ids": [
+    2,
+    3,
+    4,
+    5,
+    1,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    6,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    13,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    48,
+    32,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    47,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    147,
+    148,
+    149,
+    150,
+    151,
+    152,
+    153,
+    154,
+    155
+  ],
+  "incumbents_changed": 6,
+  "trajectory": [
+    {
+      "config_ids": [
+        1
+      ],
+      "costs": [
+        0.08101740984508621
+      ],
+      "trial": 1,
+      "walltime": 28.30576205253601
+    },
+    {
+      "config_ids": [
+        6
+      ],
+      "costs": [
+        0.08038876255399396
+      ],
+      "trial": 6,
+      "walltime": 2136.4185059070587
+    },
+    {
+      "config_ids": [
+        13
+      ],
+      "costs": [
+        0.07469772598503133
+      ],
+      "trial": 17,
+      "walltime": 3446.6251871585846
+    },
+    {
+      "config_ids": [
+        32
+      ],
+      "costs": [
+        0.06845873761514665
+      ],
+      "trial": 42,
+      "walltime": 15477.705853939056
+    },
+    {
+      "config_ids": [
+        47
+      ],
+      "costs": [
+        0.06763899428246078
+      ],
+      "trial": 63,
+      "walltime": 17407.841402053833
+    },
+    {
+      "config_ids": [
+        69
+      ],
+      "costs": [
+        0.0666587923980494
+      ],
+      "trial": 101,
+      "walltime": 17838.183225154877
+    }
+  ],
+  "state": {
+    "tracker": {
+      "0,0": [
+        [
+          0,
+          [
+            {
+              "model": "xgb",
+              "colsample_bytree": 0.5664779286507,
+              "learning_rate_xgb": 0.1322504749608,
+              "max_depth_xgb": 4,
+              "n_estimators_xgb": 500,
+              "reg_lambda": 14.1337634898532,
+              "subsample": 0.7943379282232
+            },
+            {
+              "model": "xgb",
+              "colsample_bytree": 0.5662511276427,
+              "learning_rate_xgb": 0.1241211464581,
+              "max_depth_xgb": 4,
+              "n_estimators_xgb": 100,
+              "reg_lambda": 14.3835400112643,
+              "subsample": 0.7927169948234
+            },
+            {
+              "model": "xgb",
+              "colsample_bytree": 0.5661996739673,
+              "learning_rate_xgb": 0.1242290902578,
+              "max_depth_xgb": 4,
+              "n_estimators_xgb": 100,
+              "reg_lambda": 13.967120385995,
+              "subsample": 0.7942717330541
+            },
+            {
+              "model": "xgb",
+              "colsample_bytree": 0.5662012145749,
+              "learning_rate_xgb": 0.1251889729918,
+              "max_depth_xgb": 4,
+              "n_estimators_xgb": 100,
+              "reg_lambda": 14.0668597868112,
+              "subsample": 0.7940071605661
+            },
+            {
+              "model": "xgb",
+              "colsample_bytree": 0.5667774067783,
+              "learning_rate_xgb": 0.1233973539846,
+              "max_depth_xgb": 4,
+              "n_estimators_xgb": 100,
+              "reg_lambda": 14.0096994139155,
+              "subsample": 0.7939519287959
+            },
+            {
+              "model": "xgb",
+              "colsample_bytree": 0.5662238496456,
+              "learning_rate_xgb": 0.1322167384644,
+              "max_depth_xgb": 4,
+              "n_estimators_xgb": 100,
+              "reg_lambda": 13.7878637362512,
+              "subsample": 0.8799305525567
+            },
+            {
+              "model": "xgb",
+              "colsample_bytree": 0.5664540593132,
+              "learning_rate_xgb": 0.1250002590345,
+              "max_depth_xgb": 4,
+              "n_estimators_xgb": 100,
+              "reg_lambda": 13.8404018307817,
+              "subsample": 0.9460541293
+            },
+            {
+              "model": "xgb",
+              "colsample_bytree": 0.5664779286507,
+              "learning_rate_xgb": 0.2578154393863,
+              "max_depth_xgb": 4,
+              "n_estimators_xgb": 500,
+              "reg_lambda": 14.39744513641,
+              "subsample": 0.7934232496761
+            },
+            {
+              "model": "xgb",
+              "colsample_bytree": 0.5662238496456,
+              "learning_rate_xgb": 0.1322638633155,
+              "max_depth_xgb": 4,
+              "n_estimators_xgb": 500,
+              "reg_lambda": 13.7431586969438,
+              "subsample": 0.7938030491876
+            }
+          ]
+        ]
+      ]
+    },
+    "next_bracket": 1
+  }
+}
