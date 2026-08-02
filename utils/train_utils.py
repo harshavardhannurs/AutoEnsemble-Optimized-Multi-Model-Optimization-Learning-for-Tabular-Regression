@@ -117,18 +117,20 @@ def get_model_hps(config):
                 config.get('reg_lambda')
             )
         case 'randomforest':
+            max_depth = config.get('max_depth_rf')
             return (
                 config.get('n_estimators_rf'),
-                config.get('max_depth_rf'),
+                None if max_depth == 'None' else max_depth,
                 config.get('min_samples_leaf_rf'),
                 config.get('max_features_rf')
             )
         case 'pfn':
             return config.get('n_estimators_pfn')
         case 'extratrees':
+            max_depth = config.get('max_depth_et')
             return (
                 config.get('n_estimators_et'),
-                config.get('max_depth_et'),
+                None if max_depth == 'None' else max_depth,
                 config.get('min_samples_leaf_et'),
                 config.get('max_features_et')
             )
