@@ -97,9 +97,14 @@ def train(dataset_name, save_path, seed):
         y_hat_weighted_average = np.average(final_predictions, axis=0, weights=final_weights)
 
         # Print final R2 score if y_test is available
-        if y_test_all is not None:
+        if y_test_all is not None and np.asarray(y_test_all).size > 0:
             final_score = r2_score(y_test_all, y_hat_weighted_average)
             print(f'Final R2 score on test set: {final_score:.4f}')
+        else:
+            print(
+                'Final test targets are unavailable; skipping R2 calculation '
+                'and saving predictions only.'
+            )
 
         # Save the predictions
         np.save(save_path, y_hat_weighted_average)
