@@ -20,6 +20,7 @@
     - min_samples_leaf: 1-20
     - max_features: 0.5-1.0
 - TabPFN
+    - n_estimators: 4-16
 - Feed Forward Neural Network
     - batch_size: 32 - 256
     - no_of_layers: 1-4
