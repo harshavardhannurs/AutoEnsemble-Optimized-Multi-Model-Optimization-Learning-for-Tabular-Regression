@@ -301,18 +301,17 @@ def get_oof_predictions(dataset_name, config, seed):
 
         oof_predictions_list.append(y_hat.flatten())
 
-    with open(path, 'wb') as f: # writes a new entry to the old dictionary
+    oof_predictions = np.concatenate(oof_predictions_list)
 
-        if data.get(seed, None) is None:
-            data[seed] = {
-                model_name: oof_predictions_list
-            }
-        else:
-            data[seed].update({model_name: np.concatenate(oof_predictions_list)})
+    if seed not in data:
+        data[seed] = {}
+    
+    data[seed][model_name] = oof_predictions
 
+    with open(path, 'wb') as f:
         pickle.dump(data, f)
 
-    return np.concatenate(oof_predictions_list)
+    return oof_predictions
 
 def find_weights(oof_predictions, y_train):
     
