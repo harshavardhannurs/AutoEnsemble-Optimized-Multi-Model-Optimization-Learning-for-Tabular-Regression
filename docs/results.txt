@@ -1,0 +1,6 @@
+Wine Quality - 0.4513
+Exam Data - 0.9332
+Brazilian Houses - 0.9967
+Superconductivity - 0.9117
+yprop - 0.0897
+Bike Sharing Demand - 0.9316
