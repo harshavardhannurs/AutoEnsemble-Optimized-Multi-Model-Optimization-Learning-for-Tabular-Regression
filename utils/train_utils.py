@@ -170,7 +170,7 @@ def train_final_model(dataset_name, config, seed):
         case _:
             raise ValueError(f"Unsupported model type: {model_name}")
 
-def get_oof_predictions(dataset_name, config, seed):
+def get_oof_predictions(dataset_name, config, seed, use_cached_predictions):
 
     model_name = config['model']
 
@@ -179,38 +179,42 @@ def get_oof_predictions(dataset_name, config, seed):
 
     data = {}
 
-    if path.exists():
-        with open(path, 'rb') as f:
-            data = pickle.load(f)
-        obj = data.get(seed, None)
+    if use_cached_predictions:
+        if path.exists():
+            with open(path, 'rb') as f:
+                data = pickle.load(f)
+            obj = data.get(seed, None)
 
-        if obj is not None:
-            oof_predictions = obj.get(model_name, None)
-            if oof_predictions is not None:
-                if isinstance(oof_predictions, (list, tuple)):
-                    oof_predictions = np.concatenate([
-                        np.asarray(fold_predictions).ravel()
-                        for fold_predictions in oof_predictions
-                    ])
-                else:
-                    oof_predictions = np.asarray(oof_predictions).ravel()
+            if obj is not None:
+                oof_predictions = obj.get(model_name, None)
+                if oof_predictions is not None:
+                    if isinstance(oof_predictions, (list, tuple)):
+                        oof_predictions = np.concatenate([
+                            np.asarray(fold_predictions).ravel()
+                            for fold_predictions in oof_predictions
+                        ])
+                    else:
+                        oof_predictions = np.asarray(oof_predictions).ravel()
 
-                _, expected_targets, _, _ = du.get_all_folds_data(
-                    dataset_name,
-                    seed=seed,
-                )
-                expected_length = len(expected_targets)
+                    _, expected_targets, _, _ = du.get_all_folds_data(
+                        dataset_name,
+                        seed=seed,
+                    )
+                    expected_length = len(expected_targets)
 
-                if len(oof_predictions) == expected_length:
-                    print(f"OOF predictions for {dataset_name} already exist. Returning cached predictions.")
-                    return oof_predictions
+                    if len(oof_predictions) == expected_length:
+                        print(f"OOF predictions for {dataset_name} already exist. Returning cached predictions.")
+                        return oof_predictions
 
-                print(
-                    f"Ignoring invalid cached OOF predictions for {dataset_name}/{model_name}: "
-                    f"expected {expected_length}, found {len(oof_predictions)}."
-                )
+                    print(
+                        f"Ignoring invalid cached OOF predictions for {dataset_name}/{model_name}: "
+                        f"expected {expected_length}, found {len(oof_predictions)}."
+                    )
 
-    print("No cached OOF predictions found. Generating new predictions...")
+    if not use_cached_predictions:
+        print("Cached OOF predictions not used. Generating new predictions...")
+    else:
+        print("No cached OOF predictions found. Generating new predictions...")
 
     oof_predictions_list = []
     num_folds = du.get_num_folds(dataset_name)

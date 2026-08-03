@@ -6,7 +6,7 @@ import utils.data_utils as du
 
 import models.ffn as ffn
 
-def train(dataset_name, save_path, seed):
+def train(dataset_name, save_path, seed, use_cached_predictions=True):
 
     try:
         # Fetch top configs of each model type
@@ -27,7 +27,7 @@ def train(dataset_name, save_path, seed):
             config = config_dict['config']
             model_name = config['model']
             print(f'Generating OOF predictions for {model_name}...')
-            oof_preds = tu.get_oof_predictions(dataset_name, config, seed)
+            oof_preds = tu.get_oof_predictions(dataset_name, config, seed, use_cached_predictions)
             oof_preds_dict[model_name] = oof_preds
             
             # Print R2 score for OOF predictions
