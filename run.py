@@ -92,6 +92,7 @@ if __name__=='__main__':
             dataset_name=args.task,
             save_path=args.output_path,
             seed=args.seed,
+            use_cached_predictions=True
         )
 
     if args.hpo == 'smac_hpo':
@@ -103,11 +104,12 @@ if __name__=='__main__':
             walltime_limit=args.hpo_timeout
         )
 
-        # tt.train(
-        #     dataset_name=args.task,
-        #     seed=args.seed,
-        #     save_path=args.output_path
-        # )
+        tt.train(
+            dataset_name=args.task,
+            seed=args.seed,
+            save_path=args.output_path,
+            use_cached_predictions=False # because we want to use the new best hyperparameters
+        )
 
     if args.hpo == 'smac_mfo':
 
@@ -118,16 +120,9 @@ if __name__=='__main__':
             walltime_limit=args.hpo_timeout
         )
 
-        # tt.train(
-        #     dataset_name=args.task,
-        #     seed=args.seed,
-        #     save_path=args.output_path
-        # )
-
-    # for k, v in DATASET_DICT.items():
-    #     optim.run_mf_optimizer(
-    #         dataset_name=v,
-    #         n_trials=200,
-    #         n_workers=1,
-    #         walltime_limit=86400
-    #     )
+        tt.train(
+            dataset_name=args.task,
+            seed=args.seed,
+            save_path=args.output_path,
+            use_cached_predictions=False
+        )
